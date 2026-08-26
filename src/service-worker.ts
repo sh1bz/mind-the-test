@@ -12,7 +12,7 @@ const SHELL = base + '/';
 const ASSETS = [...build, ...files, SHELL];
 
 sw.addEventListener('install', (e) => {
-	e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => sw.skipWaiting()));
+	e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((a) => new Request(a, { cache: 'reload' })))).then(() => sw.skipWaiting()));
 });
 sw.addEventListener('activate', (e) => {
 	e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => sw.clients.claim()));
@@ -24,8 +24,7 @@ sw.addEventListener('fetch', (e) => {
 		const cache = await caches.open(CACHE);
 		if (e.request.mode === 'navigate') {
 			try {
-				const res = await fetch(e.request);
-				if (res.ok) cache.put(SHELL, res.clone());
+				XX				if (res.ok) cache.put(SHELL, res.clone());
 				return res;
 			} catch {
 				return (await cache.match(SHELL)) ?? Response.error();
@@ -34,8 +33,7 @@ sw.addEventListener('fetch', (e) => {
 		const hit = await cache.match(e.request);
 		if (hit) return hit;
 		try {
-			const res = await fetch(e.request);
-			if (res.ok && url.pathname.startsWith(base + '/_app/')) cache.put(e.request, res.clone());
+			XX			if (res.ok && url.pathname.startsWith(base + '/_app/')) cache.put(e.request, res.clone());
 			return res;
 		} catch {
 			return Response.error();

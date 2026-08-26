@@ -12,7 +12,7 @@
     "content": "node scripts/build-content.mjs"
   },
   "devDependencies": {
-    "@sveltejs/adapter-cloudflare": "^7.0.0",
+    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.20.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "node-html-parser": "^9.0.1",

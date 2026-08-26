@@ -2,7 +2,7 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { TOPIC_COLORS, TOPICS } from '$lib/content';
-	import { plan, topicStats, known, ready, daysLeft, fmtDay, pct } from '$lib/ui/derive';
+	import { plan, topicStats, known, learning, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
 	import { streakDays } from '$lib/store/progress';
 	import { EXAM_PASS, EXAM_QUESTIONS, EXAM_MINUTES } from '$lib/engine/readiness';
 	import { QUESTIONS } from '$lib/content';
@@ -16,6 +16,7 @@
 	const p = $derived(plan(app.progress, st, now, nav.topic));
 	const lines = $derived(topicStats(st));
 	const k = $derived(known(st));
+	const l = $derived(learning(st));
 	const streak = $derived(streakDays(app.progress.days, now));
 	const mocks = $derived(app.progress.mocks.slice(-3).map((m) => m.score));
 	const left = $derived(daysLeft(app.exam, now));
@@ -44,8 +45,8 @@
 	<div class="hero">
 		<Gauge value={r.passProb} />
 		<div class="stats">
-			<div><b class="num">{pct(r.recall)}</b>Recall now</div>
 			<div><b class="num">{k} <span class="muted" style="font-size:13px;font-weight:500">/ {QUESTIONS.length}</span></b>Known</div>
+			<div><b class="num">{l}</b>Learning</div>
 			<div><b class="num">{streak}</b>Day streak</div>
 			<div><b class="num">{mocks.length ? mocks.join(' · ') : '—'}</b>Last mocks</div>
 		</div>
@@ -58,7 +59,7 @@
 
 <div class="sec"><h2>Today's plan</h2>{#if nothing}<span class="muted small">All caught up</span>{/if}</div>
 <div class="list">
-	<button class="lrow ic-sep" type="button" onclick={() => start('review')} disabled={!p.due}><Ic name="review" color="var(--blue)" />Questions to review<b class="v ink num">{p.due}</b><span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => start('review')} disabled={!p.due}><Ic name="review" color="var(--blue)" />Questions to review{#if !p.due && p.soon}<span class="v num">{p.soon} back in {fmtIn(p.soonAt - now)}</span>{:else}<b class="v ink num">{p.due}</b>{/if}<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => start('new')} disabled={!p.fresh}><Ic name="plus" color="var(--green)" />New questions<b class="v ink num">{p.fresh}</b><span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => start('weak')} disabled={!p.weak}><Ic name="warn" color="var(--orange)" />Ones you keep missing<b class="v ink num">{p.weak}</b><span class="chev">›</span></button>
 	<div class="lrow"><Ic name="clock" color="var(--indigo)" />Time needed<span class="v num">{nothing ? '—' : `about ${p.minutes} min`}</span></div>

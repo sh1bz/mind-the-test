@@ -15,7 +15,7 @@
 	const WELCOMED = 'lifeuk-welcomed';
 	const seen = () => { try { return !!localStorage.getItem(WELCOMED); } catch { return true; } };
 	let welcomed = $state(!browser || seen() || !!app.progress.exam || Object.keys(app.progress.items).length > 0);
-	function done() { welcomed = true; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
+	function done() { welcomed = true; nav.onboarding = false; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
 	const full = $derived(nav.screen === 'train' || nav.screen === 'mock');
 	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
 </script>
@@ -40,4 +40,4 @@
 	{/if}
 </main>
 {#if !full}<Tabs />{/if}
-{#if !welcomed}<Onboarding ondone={done} />{/if}
+{#if !welcomed || nav.onboarding}<Onboarding ondone={done} />{/if}

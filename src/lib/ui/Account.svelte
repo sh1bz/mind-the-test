@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { app } from '$lib/store/app.svelte';
+	import { nav } from '$lib/ui/nav.svelte';
 	import { fmtLong } from '$lib/ui/derive';
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
@@ -65,6 +66,11 @@
 		<button class="lrow ic-sep" type="button" onclick={() => (editDate = true)}><Ic name="calendar" color="var(--red)" />{app.progress.exam ? fmtLong(app.progress.exam) : 'Not set'}<span class="v" style="color:var(--blue)">{app.progress.exam ? 'Change' : 'Set'}</span><span class="chev">›</span></button>
 	</div>
 {/if}
+
+<div class="sec"><h2>Help</h2></div>
+<div class="list">
+	<button class="lrow ic-sep" type="button" onclick={() => nav.showOnboarding()}><Ic name="book" color="var(--indigo)" />How it works<span class="chev">›</span></button>
+</div>
 
 <div class="sec"><h2>Data</h2></div>
 <div class="list">

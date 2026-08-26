@@ -19,6 +19,7 @@ class Nav {
 	topic = $state<number | null>(null); // Today's line filter
 	sheet = $state<string | null>(null); // map card id open in a sheet
 	mapFocus = $state<string | null>(null); // section id the Map tab opens on
+	onboarding = $state(false); // "How it works" reopened from Account
 
 	constructor() {
 		if (browser) addEventListener('hashchange', () => { this.tab = fromHash(); if (this.screen === 'tabs' || this.screen === 'summary') this.screen = 'tabs'; });
@@ -28,6 +29,7 @@ class Nav {
 	startMock(placement = false) { this.placement = placement; this.screen = 'mock'; }
 	finishTrain(s: SummarySpec) { this.summary = s; this.screen = 'summary'; }
 	home() { this.screen = 'tabs'; this.go('today'); }
+	showOnboarding() { this.go('today'); this.onboarding = true; }
 	openMap(section: string) { this.mapFocus = section; this.go('map'); }
 }
 export const nav = new Nav();

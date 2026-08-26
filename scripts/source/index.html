@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life in the UK — Revision Map</title>
+<style>
+:root{
+  --bg:#FBFAF6; --card:#FFFFFF; --ink:#1B2033; --muted:#5B6175; --hair:#E4E2D9;
+  --green:#007D32; --blue:#0019A8; --red:#DC241F; --cyan:#0098D4;
+  --magenta:#9B0058; --orange:#E96B0C; --brown:#8F5A1D; --yellow:#FFD300;
+  --chipink:#FFFFFF; --shadow:0 1px 3px rgba(27,32,51,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#131623; --card:#1C2032; --ink:#E9EBF4; --muted:#9BA2B8; --hair:#2C3149;
+    --green:#3FAE68; --blue:#6C7FEE; --red:#F0554D; --cyan:#3FB6E8;
+    --magenta:#E0559E; --orange:#F58A38; --brown:#C98D4A; --yellow:#FFD84D;
+    --chipink:#131623; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131623; --card:#1C2032; --ink:#E9EBF4; --muted:#9BA2B8; --hair:#2C3149;
+  --green:#3FAE68; --blue:#6C7FEE; --red:#F0554D; --cyan:#3FB6E8;
+  --magenta:#E0559E; --orange:#F58A38; --brown:#C98D4A; --yellow:#FFD84D;
+  --chipink:#131623; --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+:root[data-theme="light"]{
+  --bg:#FBFAF6; --card:#FFFFFF; --ink:#1B2033; --muted:#5B6175; --hair:#E4E2D9;
+  --green:#007D32; --blue:#0019A8; --red:#DC241F; --cyan:#0098D4;
+  --magenta:#9B0058; --orange:#E96B0C; --brown:#8F5A1D; --yellow:#FFD300;
+  --chipink:#FFFFFF; --shadow:0 1px 3px rgba(27,32,51,.07);
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Gill Sans Nova","Gill Sans","Gill Sans MT",Calibri,"Trebuchet MS",system-ui,sans-serif;
+  line-height:1.45; margin:0; font-size:16px;
+}
+.wrap{max-width:1060px; margin:0 auto; padding:0 20px 80px}
+
+/* ---------- header ---------- */
+header{padding:36px 0 8px}
+.roundel{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.roundel .ring{
+  width:46px; height:46px; border-radius:50%; border:7px solid var(--red);
+  position:relative; flex:none;
+}
+.roundel .ring::after{
+  content:""; position:absolute; left:-14px; right:-14px; top:50%;
+  height:9px; transform:translateY(-50%); background:var(--blue);
+}
+h1{font-size:clamp(26px,4.5vw,38px); margin:0; letter-spacing:-.01em; text-wrap:balance}
+.sub{color:var(--muted); margin:10px 0 0; max-width:64ch}
+.sub b{color:var(--ink)}
+
+/* ---------- controls / nav ---------- */
+.bar{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  padding:12px 0; border-bottom:1px solid var(--hair);
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.chip{
+  display:inline-flex; align-items:center; gap:7px; padding:5px 12px 6px;
+  border-radius:999px; color:var(--chipink); font-size:13px; font-weight:600;
+  text-decoration:none; letter-spacing:.02em; white-space:nowrap;
+}
+.chip .dot{width:8px; height:8px; border-radius:50%; background:var(--chipink); opacity:.85}
+#quizToggle{
+  margin-left:auto; cursor:pointer; border:2px solid var(--ink); background:var(--card);
+  color:var(--ink); font:inherit; font-weight:700; font-size:13px;
+  padding:6px 14px; border-radius:999px; letter-spacing:.02em;
+}
+#quizToggle[aria-pressed="true"]{background:var(--yellow); border-color:var(--yellow); color:#1B2033}
+#quizToggle:focus-visible, .chip:focus-visible{outline:3px solid var(--cyan); outline-offset:2px}
+
+/* ---------- sections ---------- */
+section{margin-top:52px; scroll-margin-top:70px}
+.sec-head{display:flex; align-items:center; gap:12px; margin-bottom:6px}
+.sec-head .tab{width:34px; height:12px; border-radius:6px; flex:none}
+h2{font-size:clamp(20px,3vw,26px); margin:0; letter-spacing:.01em}
+.sec-note{color:var(--muted); margin:4px 0 18px; font-size:14.5px; max-width:72ch}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px}
+.card{
+  background:var(--card); border:1px solid var(--hair); border-radius:10px;
+  padding:14px 16px 15px; box-shadow:var(--shadow); border-top:4px solid var(--hair);
+}
+.card h3{
+  margin:0 0 8px; font-size:12.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); font-weight:700;
+}
+.card ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px}
+.card li{font-size:14.5px; padding-left:14px; position:relative}
+.card li::before{content:""; position:absolute; left:0; top:.52em; width:6px; height:6px; border-radius:50%; background:var(--hair)}
+.q{color:var(--muted)}
+.a{font-weight:700}
+
+/* cue rows */
+.cue{
+  margin-top:10px; background:color-mix(in srgb, var(--yellow) 16%, var(--card));
+  border:1px solid color-mix(in srgb, var(--yellow) 45%, var(--hair));
+  border-radius:8px; padding:8px 11px; font-size:13.5px;
+}
+.cue b.tag{
+  display:inline-block; background:var(--yellow); color:#1B2033; border-radius:4px;
+  font-size:10.5px; letter-spacing:.1em; padding:1px 6px 2px; margin-right:7px; vertical-align:1px;
+}
+
+/* per-line card accents */
+.s-geo .card{border-top-color:var(--green)} .s-geo .card li::before{background:var(--green)}
+.s-val .card{border-top-color:var(--cyan)} .s-val .card li::before{background:var(--cyan)}
+.s-gov .card{border-top-color:var(--blue)} .s-gov .card li::before{background:var(--blue)}
+.s-law .card{border-top-color:var(--magenta)} .s-law .card li::before{background:var(--magenta)}
+.s-cul .card{border-top-color:var(--orange)} .s-cul .card li::before{background:var(--orange)}
+.s-trap .card{border-top-color:var(--brown)} .s-trap .card li::before{background:var(--brown)}
+
+/* ---------- four nations table ---------- */
+.tbl-wrap{overflow-x:auto; margin-top:14px; border:1px solid var(--hair); border-radius:10px; background:var(--card); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:640px; font-size:14.5px}
+th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--hair)}
+tbody tr:last-child td{border-bottom:none}
+th{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
+td:first-child{font-weight:700}
+tbody td{font-variant-numeric:tabular-nums}
+
+/* ---------- timeline ---------- */
+.era{margin-top:26px}
+.era-name{
+  display:inline-flex; align-items:center; gap:10px; font-weight:700; font-size:15px;
+  letter-spacing:.06em; text-transform:uppercase;
+}
+.era-name::before{content:""; width:16px; height:16px; border-radius:50%; border:4px solid var(--red); background:var(--card)}
+.rail{border-left:5px solid var(--red); margin:10px 0 0 5.5px; padding:8px 0 4px 0}
+.stop{position:relative; padding:5px 8px 5px 26px; font-size:14.5px}
+.stop::before{
+  content:""; position:absolute; left:-11px; top:.72em; width:7px; height:7px;
+  border-radius:50%; background:var(--card); border:3px solid var(--red);
+}
+.stop .yr{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px; font-weight:700; color:var(--red);
+  display:inline-block; min-width:74px; font-variant-numeric:tabular-nums;
+}
+.rail .cue{margin:8px 0 8px 26px; max-width:640px}
+
+/* ---------- numbers grid ---------- */
+.numgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:14px}
+.num{
+  background:var(--card); border:1px solid var(--hair); border-radius:10px; padding:12px 14px;
+  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:2px;
+}
+.num .n{font-size:26px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.1}
+.num .l{font-size:12.5px; color:var(--muted); line-height:1.35}
+.num:nth-child(6n+1) .n{color:var(--red)} .num:nth-child(6n+2) .n{color:var(--blue)}
+.num:nth-child(6n+3) .n{color:var(--green)} .num:nth-child(6n+4) .n{color:var(--magenta)}
+.num:nth-child(6n+5) .n{color:var(--orange)} .num:nth-child(6n+6) .n{color:var(--cyan)}
+
+/* ---------- quiz mode ---------- */
+body.quiz .a, body.quiz .num .n{filter:blur(7px); cursor:pointer; border-radius:4px; transition:filter .12s ease}
+body.quiz .a.show, body.quiz .num .n.show{filter:none}
+.quizhint{display:none; font-size:13px; color:var(--muted)}
+body.quiz .quizhint{display:inline}
+
+footer{margin-top:64px; border-top:1px solid var(--hair); padding-top:16px; color:var(--muted); font-size:13px; max-width:72ch}
+@media (prefers-reduced-motion: reduce){ body.quiz .a{transition:none} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="roundel" aria-hidden="true"><div class="ring"></div>
+  <h1>Life in the UK — Revision Map</h1></div>
+  <p class="sub">Every question from the <b>17 practice exams</b> on lifeintheuktestweb.co.uk (404 unique questions), condensed into one sheet. Each topic is a line; yellow boxes are <b>memory cues</b>. Answers are in <b>bold</b> — hit <b>Test yourself</b> to blur them, then tap to reveal.</p>
+</header>
+
+<nav class="bar" aria-label="Topics">
+  <a class="chip" style="background:var(--green)" href="#geo"><span class="dot"></span>UK &amp; Geography</a>
+  <a class="chip" style="background:var(--cyan)" href="#values"><span class="dot"></span>Values</a>
+  <a class="chip" style="background:var(--red)" href="#history"><span class="dot"></span>History</a>
+  <a class="chip" style="background:var(--blue)" href="#gov"><span class="dot"></span>Government</a>
+  <a class="chip" style="background:var(--magenta)" href="#law"><span class="dot"></span>Law</a>
+  <a class="chip" style="background:var(--orange)" href="#culture"><span class="dot"></span>Culture &amp; Sport</a>
+  <a class="chip" style="background:var(--brown)" href="#traps"><span class="dot"></span>Traps</a>
+  <button id="quizToggle" aria-pressed="false">Test yourself</button>
+  <span class="quizhint">Tap a blurred answer to reveal it.</span>
+</nav>
+
+<!-- ================= GEOGRAPHY ================= -->
+<section id="geo" class="s-geo">
+  <div class="sec-head"><span class="tab" style="background:var(--green)"></span><h2>The UK &amp; its Geography</h2></div>
+  <p class="sec-note">What the UK actually is trips more people up than any history date. Lock in the UK / Great Britain / dependencies distinction first.</p>
+
+  <div class="grid">
+    <div class="card"><h3>What is the UK?</h3>
+      <ul>
+        <li><span class="q">The UK =</span> <span class="a">England, Scotland, Wales and Northern Ireland</span></li>
+        <li><span class="q">Great Britain =</span> <span class="a">England, Scotland and Wales only</span> — NI is <span class="a">not</span> part of GB</li>
+        <li><span class="q">Location:</span> <span class="a">north-west of Europe</span></li>
+        <li><span class="q">Crown dependencies (own governments, not part of UK):</span> <span class="a">Channel Islands &amp; Isle of Man</span></li>
+        <li><span class="q">British overseas territories (linked, not part of UK):</span> <span class="a">St Helena &amp; the Falkland Islands</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b><b>GB = the big island only.</b> Close to home = <b>Crown</b> dependencies; far away = <b>overseas</b> territories. Neither is “part of the UK”.</div>
+    </div>
+
+    <div class="card"><h3>Capitals</h3>
+      <ul>
+        <li><span class="q">England:</span> <span class="a">London</span> &nbsp;·&nbsp; <span class="q">Scotland:</span> <span class="a">Edinburgh</span></li>
+        <li><span class="q">Wales:</span> <span class="a">Cardiff</span> &nbsp;·&nbsp; <span class="q">N. Ireland:</span> <span class="a">Belfast</span></li>
+        <li><span class="q">Swansea and Snowdonia are in</span> <span class="a">Wales</span></li>
+      </ul>
+    </div>
+
+    <div class="card"><h3>Money</h3>
+      <ul>
+        <li><span class="q">Currency:</span> <span class="a">pound sterling (£)</span></li>
+        <li><span class="q">Not a real coin:</span> <span class="a">25p</span> · <span class="q">not a real note:</span> <span class="a">£25</span></li>
+        <li><span class="q">“£100 is the highest note” —</span> <span class="a">False</span> (it’s £50)</li>
+        <li><span class="q">Scotland &amp; NI print their own banknotes —</span> <span class="a">valid everywhere in the UK</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>No quarter: the UK has <b>no 25</b>-anything — no 25p, no £25.</div>
+    </div>
+
+    <div class="card"><h3>National parks &amp; nature</h3>
+      <ul>
+        <li><span class="q">National parks in England, Wales &amp; Scotland:</span> <span class="a">15</span> — <span class="a">areas of protected countryside</span></li>
+        <li><span class="q">England’s largest national park:</span> <span class="a">the Lake District</span> — its Wastwater voted <span class="a">Britain’s favourite view (2007)</span></li>
+        <li><span class="q">Loch Lomond &amp; the Trossachs:</span> <span class="a">Scotland</span> · <span class="q">Snowdonia:</span> <span class="a">Wales</span></li>
+        <li><span class="q">Charity preserving buildings, coastline, countryside:</span> <span class="a">the National Trust</span></li>
+        <li><span class="q">Environmental charity:</span> <span class="a">Friends of the Earth</span></li>
+      </ul>
+    </div>
+
+    <div class="card"><h3>Landmarks</h3>
+      <ul>
+        <li><span class="q">Big Ben — the bell at</span> <span class="a">the Houses of Parliament</span></li>
+        <li><span class="q">Tower of London — built by</span> <span class="a">William the Conqueror</span> (the <span class="a">White Tower</span>); holds the <span class="a">Crown Jewels</span>; guides are <span class="a">Beefeaters</span> (Yeoman Warders)</li>
+        <li><span class="q">Cenotaph — a</span> <span class="a">war memorial</span> in <span class="a">Whitehall</span>, designed by <span class="a">Sir Edwin Lutyens</span></li>
+        <li><span class="q">Stonehenge:</span> <span class="a">Wiltshire</span> · <span class="q">Eden Project:</span> <span class="a">Cornwall</span></li>
+        <li><span class="q">Giant’s Causeway (volcanic columns, ~50m yrs old):</span> <span class="a">Northern Ireland</span></li>
+        <li><span class="q">Skara Brae (best-preserved prehistoric village):</span> <span class="a">Orkney, Scotland</span></li>
+        <li><span class="q">Crathes Castle:</span> <span class="a">Scotland</span> · <span class="q">Theatreland:</span> <span class="a">London’s West End</span> · <span class="q">Tate galleries:</span> <span class="a">London</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>One landmark per nation: Causeway = <b>NI</b>, Skara Brae = <b>Scotland</b>, Snowdonia = <b>Wales</b>, Stonehenge/Eden/Lakes = <b>England</b>.</div>
+    </div>
+
+    <div class="card"><h3>People of the UK</h3>
+      <ul>
+        <li><span class="q">Share of population with a parent or grandparent born abroad:</span> <span class="a">about 10%</span></li>
+        <li><span class="q">Women today make up</span> <span class="a">about half the workforce</span></li>
+        <li><span class="q">Most shops open</span> <span class="a">seven days a week</span> (shorter hours Sundays/holidays)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tbl-wrap"><table>
+    <caption style="text-align:left;padding:10px 14px;font-weight:700">The four nations at a glance</caption>
+    <thead><tr><th>Nation</th><th>Capital</th><th>Patron saint</th><th>Saint’s day</th><th>Flower</th><th>Extras</th></tr></thead>
+    <tbody>
+      <tr><td>England</td><td><span class="a">London</span></td><td><span class="a">St George</span></td><td><span class="a">23 April</span></td><td><span class="a">Rose</span></td><td>—</td></tr>
+      <tr><td>Scotland</td><td><span class="a">Edinburgh</span></td><td><span class="a">St Andrew</span></td><td><span class="a">30 November</span></td><td><span class="a">Thistle</span></td><td>Haggis · Hogmanay (31 Dec) · saint’s day is a holiday</td></tr>
+      <tr><td>Wales</td><td><span class="a">Cardiff</span></td><td><span class="a">St David</span></td><td><span class="a">1 March</span></td><td><span class="a">Daffodil</span></td><td>—</td></tr>
+      <tr><td>N. Ireland</td><td><span class="a">Belfast</span></td><td><span class="a">St Patrick</span></td><td><span class="a">17 March</span></td><td><span class="a">Shamrock</span></td><td>Ulster fry · saint’s day is a holiday</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cue"><b class="tag">CUE</b>Saints through the year: <b>D</b>avid (1 Mar) → <b>P</b>atrick (17 Mar) → <b>G</b>eorge (23 Apr) → <b>A</b>ndrew (30 Nov): “<b>D</b>affodils <b>P</b>op up, <b>G</b>ardens <b>A</b>utumn” — and the day-numbers climb: 1 → 17 → 23 → 30. Only <b>Scotland &amp; NI</b> get the day off.</div>
+</section>
+
+<!-- ================= VALUES ================= -->
+<section id="values" class="s-val">
+  <div class="sec-head"><span class="tab" style="background:var(--cyan)"></span><h2>Values &amp; Your Responsibilities</h2></div>
+  <div class="grid">
+    <div class="card"><h3>Fundamental principles of British life</h3>
+      <ul>
+        <li><span class="a">Democracy</span></li>
+        <li><span class="a">The rule of law</span></li>
+        <li><span class="a">Individual liberty</span></li>
+        <li><span class="a">Tolerance of different faiths and beliefs</span></li>
+        <li><span class="a">Participation in community life</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b><b>D-R-I-T-P</b>: “<b>D</b>emocracy <b>R</b>uns on <b>I</b>ndividuals, <b>T</b>olerance and <b>P</b>articipation.” Monarchy and “joining a party” are <b>not</b> principles — common wrong options.</div>
+    </div>
+    <div class="card"><h3>Your responsibilities as a citizen / resident</h3>
+      <ul>
+        <li><span class="a">Respect and obey the law</span></li>
+        <li><span class="a">Respect the rights of others</span>, including their opinions</li>
+        <li><span class="a">Treat others with fairness</span></li>
+        <li><span class="a">Look after yourself and your family</span></li>
+        <li><span class="a">Look after your area and the environment</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>Two “respects”, two “look afters”, one “fairness”. “Stay in the UK forever” and “promote work” are decoys.</div>
+    </div>
+    <div class="card"><h3>Getting set up</h3>
+      <ul>
+        <li><span class="q">National Insurance number — phone the</span> <span class="a">Department for Work and Pensions (DWP)</span></li>
+        <li><span class="q">Documents needed:</span> <span class="a">proof of identity</span> + <span class="a">proof of permission to work</span></li>
+        <li><span class="q">National Citizen Service — for</span> <span class="a">16–17 year olds</span>, and it is <span class="a">optional</span>, not compulsory</li>
+        <li><span class="q">Suspected extremism/terrorism — contact</span> <span class="a">your local police force</span></li>
+        <li><span class="q">School governors’ key roles:</span> <span class="a">set the strategic direction, ensure accountability, monitor and evaluate school performance</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HISTORY ================= -->
+<section id="history" class="s-hist">
+  <div class="sec-head"><span class="tab" style="background:var(--red)"></span><h2>History — the Central Line</h2></div>
+  <p class="sec-note">Ride it end to end: every stop is a fact that has appeared in the exams. Cues sit on the platform between stops.</p>
+
+  <div class="era"><span class="era-name">Early Britain</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">Stone Age</span> First people were <span class="a">hunter-gatherers</span></div>
+      <div class="stop"><span class="yr">6,000 yrs</span> First <span class="a">farmers</span> arrive, ancestors from <span class="a">south-east Europe</span></div>
+      <div class="stop"><span class="yr">Iron Age</span> First <span class="a">coins minted in Britain</span>, some inscribed with <span class="a">names of Iron Age kings</span></div>
+      <div class="stop"><span class="yr">55 BC</span> <span class="a">Julius Caesar</span> leads the first (failed) Roman invasion</div>
+      <div class="stop"><span class="yr">AD 43</span> Emperor <span class="a">Claudius</span> invades successfully; <span class="a">Boudicca</span>, queen of the <span class="a">Iceni</span>, fights the Romans</div>
+      <div class="stop"><span class="yr">c. 122</span> Emperor <span class="a">Hadrian</span> builds a wall to keep out the <span class="a">Picts</span> — forts <span class="a">Housesteads &amp; Vindolanda</span></div>
+      <div class="stop"><span class="yr">AD 410</span> Romans leave; <span class="a">Jutes, Angles and Saxons</span> invade from northern Europe</div>
+      <div class="stop"><span class="yr">~600s</span> <span class="a">St Augustine</span> spreads Christianity — first <span class="a">Archbishop of Canterbury</span></div>
+      <div class="stop"><span class="yr">800s</span> Anglo-Saxon kingdoms unite under <span class="a">Alfred the Great</span>, who defeats the <span class="a">Vikings</span></div>
+      <div class="cue"><b class="tag">CUE</b>Invader order = <b>C-C-A-S-V-N</b>: Caesar, Claudius, Anglo-Saxons, Vikings, Normans. Caesar <b>failed</b>, Claudius <b>nailed</b> it.</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">Middle Ages</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1066</span> <span class="a">Norman Conquest</span> — <span class="a">last successful invasion</span>. <span class="a">William the Conqueror</span> (Duke of Normandy, <span class="a">France</span>) beats Harold at <span class="a">Hastings</span>; recorded in the <span class="a">Bayeux Tapestry</span></div>
+      <div class="stop"><span class="yr">after 1066</span> <span class="a">Domesday Book</span> — William’s survey of towns, people and animals. Nobles speak <span class="a">Norman French</span>, peasants <span class="a">Anglo-Saxon</span> → the two merge into <span class="a">English</span></div>
+      <div class="stop"><span class="yr">1215</span> <span class="a">Magna Carta</span> — even the king is <span class="a">subject to the law</span>; restricted his power to collect taxes and change laws</div>
+      <div class="stop"><span class="yr">1314</span> <span class="a">Robert the Bruce</span> beats the English at <span class="a">Bannockburn</span> — Scotland stays unconquered</div>
+      <div class="stop"><span class="yr">1348</span> <span class="a">Black Death</span> (a <span class="a">plague</span>) kills <span class="a">one third</span> of England (similar in Scotland &amp; Wales)</div>
+      <div class="stop"><span class="yr">1400s</span> <span class="a">Hundred Years War</span> with France (actually <span class="a">116 years</span>); serfs = <span class="a">peasants farming a small patch of their lord’s land</span></div>
+      <div class="stop"><span class="yr">1455</span> <span class="a">Wars of the Roses</span>: House of <span class="a">Lancaster</span> vs House of <span class="a">York</span></div>
+      <div class="stop"><span class="yr">1400s</span> <span class="a">Chaucer</span> writes <span class="a">The Canterbury Tales</span> — <span class="a">poems</span> about a <span class="a">pilgrimage</span>; <span class="a">William Caxton</span> first to <span class="a">print books</span> in England</div>
+      <div class="cue"><b class="tag">CUE</b>Dates that spell themselves: Magna Carta = <b>12:15</b> on the clock. Bannockburn = <b>13-14</b> counting up. Black Death = 13<b>48</b> (“fourth-eighth of the people gone — worse: a third”).</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">Tudors &amp; Stuarts</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1530s</span> <span class="a">Henry VIII</span> founds the <span class="a">Church of England</span> because the <span class="a">Pope refused his divorce</span> from Catherine of Aragon; the movement against the Pope’s authority = <span class="a">the Reformation</span></div>
+      <div class="stop"><span class="yr">1536</span> <span class="a">Anne Boleyn</span> executed at the <span class="a">Tower of London</span></div>
+      <div class="stop"><span class="yr">1560</span> Scotland’s Parliament establishes a <span class="a">Protestant</span> Church of Scotland (<span class="a">Presbyterian</span>, elected leadership, not a state church)</div>
+      <div class="stop"><span class="yr">1558–1603</span> <span class="a">Elizabeth I</span> — daughter of <span class="a">Henry VIII</span>, a <span class="a">Protestant</span> who balanced Catholic and Protestant views; under her, settlers begin to <span class="a">colonise America’s east coast</span></div>
+      <div class="stop"><span class="yr">1588</span> English defeat the <span class="a">Spanish Armada</span> — sent by <span class="a">Spain</span> to <span class="a">restore Catholicism</span></div>
+      <div class="stop"><span class="yr">1587</span> <span class="a">Mary, Queen of Scots</span> — a <span class="a">Catholic</span>, Elizabeth’s cousin — <span class="a">executed</span> after 20 years in prison, accused of plotting</div>
+      <div class="stop"><span class="yr">1603</span> <span class="a">James VI of Scotland</span> becomes James I of England; his English Bible = the <span class="a">King James / Authorised Version</span></div>
+      <div class="stop"><span class="yr">1642</span> <span class="a">Civil War</span>: king’s <span class="a">Cavaliers</span> vs Parliament’s <span class="a">Roundheads</span>. Charles I believed in the <span class="a">Divine Right of Kings</span> and tried to <span class="a">rule without Parliament</span></div>
+      <div class="stop"><span class="yr">1645</span> Charles I defeated at <span class="a">Marston Moor and Naseby</span></div>
+      <div class="stop"><span class="yr">1649</span> <span class="a">Charles I executed</span> → England becomes a <span class="a">republic (“the Commonwealth”)</span>; <span class="a">Oliver Cromwell</span> = <span class="a">Lord Protector</span> (until 1658); Puritans were strict <span class="a">Protestants</span></div>
+      <div class="stop"><span class="yr">1660</span> <span class="a">Charles II</span> restored from exile in <span class="a">the Netherlands</span> — had escaped by <span class="a">hiding in an oak tree</span></div>
+      <div class="stop"><span class="yr">1666</span> <span class="a">Great Fire of London</span> destroys St Paul’s — rebuilt by <span class="a">Sir Christopher Wren</span></div>
+      <div class="stop"><span class="yr">1679</span> <span class="a">Habeas Corpus Act</span> — every prisoner has <span class="a">a right to a court hearing</span></div>
+      <div class="stop"><span class="yr">1688</span> <span class="a">Glorious Revolution</span> — Protestants invite <span class="a">William of Orange</span> to take the throne, unresisted</div>
+      <div class="stop"><span class="yr">1689</span> <span class="a">Bill of Rights</span> — confirms the <span class="a">rights of Parliament and limits of the king’s power</span> (NOT votes!) → start of <span class="a">constitutional monarchy</span></div>
+      <div class="stop"><span class="yr">1690</span> William defeats <span class="a">James II</span> at the <span class="a">Battle of the Boyne</span> (Ireland)</div>
+      <div class="stop"><span class="yr">1680–1720</span> <span class="a">Huguenot</span> refugees arrive from <span class="a">France</span></div>
+      <div class="cue"><b class="tag">CUE</b>Charles <b>I</b> lost his head; Charles <b>II</b> hid in a tree. Fire of London: 1<b>666</b> — “the devil’s number burned the city.” Stuart drumbeat: 42 war · 49 axe · 60 return · 66 fire · 79 habeas · 88 glorious · 89 bill · 90 Boyne.</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">Georgians &amp; the Empire</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1721–42</span> <span class="a">Sir Robert Walpole</span> — the <span class="a">first Prime Minister</span></div>
+      <div class="stop"><span class="yr">1745</span> <span class="a">Bonnie Prince Charlie</span> (Charles Edward Stuart) raises an army of <span class="a">Highland</span> clansmen; earlier the <span class="a">MacDonalds of Glencoe</span> were killed for not taking the oath; landlords later destroy crofts in the <span class="a">Highland Clearances</span></div>
+      <div class="stop"><span class="yr">1700s</span> <span class="a">The Enlightenment</span> — new ideas in politics, philosophy, science: <span class="a">Adam Smith → economics</span>, <span class="a">David Hume → philosophy</span></div>
+      <div class="stop"><span class="yr">1700s</span> <span class="a">Industrial Revolution</span> — driven by <span class="a">steam power</span>; <span class="a">manufacturing</span> becomes the biggest employer; <span class="a">canals</span> built to link factories to towns and ports; Britain in conflict with <span class="a">France</span> over trade; captain <span class="a">James Cook</span> maps <span class="a">Australia</span></div>
+      <div class="stop"><span class="yr">1776</span> <span class="a">13 North American colonies</span> declare independence over <span class="a">taxation</span> (“no taxation without representation”)</div>
+      <div class="stop"><span class="yr">1805</span> Battle of <span class="a">Trafalgar</span> — Admiral <span class="a">Nelson</span> commands the fleet and <span class="a">is killed</span></div>
+      <div class="stop"><span class="yr">1815</span> Battle of <span class="a">Waterloo</span> — the <span class="a">Duke of Wellington</span> defeats <span class="a">Napoleon</span>; the <span class="a">last battle between Britain and France</span></div>
+      <div class="cue"><b class="tag">CUE</b><b>Nelson at sea ’05, Wellington on land ’15</b> — the sailor comes first, and only the soldier survives.</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">Victorians</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1833</span> <span class="a">Emancipation Act</span> abolishes <span class="a">slavery</span> across the Empire; <span class="a">William Wilberforce</span> — a <span class="a">politician</span> (MP) and abolitionist</div>
+      <div class="stop"><span class="yr">1846</span> <span class="a">Corn Laws repealed</span> — free trade by <span class="a">abolishing import taxes</span></div>
+      <div class="stop"><span class="yr">1847</span> <span class="a">Factories Act</span> — women &amp; children limited to <span class="a">10 hours</span> a day</div>
+      <div class="stop"><span class="yr">1851</span> <span class="a">Great Exhibition</span> in Hyde Park, inside the <span class="a">Crystal Palace</span></div>
+      <div class="stop"><span class="yr">1853–56</span> <span class="a">Crimean War</span> — Britain + Turkey + France vs <span class="a">Russia</span>; first war <span class="a">extensively covered by the media</span>; <span class="a">Florence Nightingale</span> — a <span class="a">nurse</span>, founder of modern nursing</div>
+      <div class="stop"><span class="yr">1840s</span> Irish <span class="a">potato</span> famine — a million die; the <span class="a">Fenians</span> want complete Irish independence</div>
+      <div class="stop"><span class="yr">1800s</span> <span class="a">Isambard Kingdom Brunel</span> builds the <span class="a">Great Western Railway</span> (first major railway, from Paddington)</div>
+      <div class="stop"><span class="yr">1899–1902</span> <span class="a">Boer War</span> in <span class="a">South Africa</span> — the Boers were settlers from <span class="a">the Netherlands</span></div>
+      <div class="cue"><b class="tag">CUE</b>Victorian reforms go 33 → 46 → 47 → 51: <b>free the people, free the trade, free the workers, show it off</b> (Emancipation, Corn Laws, Factories Act, Great Exhibition).</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">20th century</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1913–21</span> <span class="a">Home Rule</span> promised for Ireland, postponed by <span class="a">WWI</span>; Ireland becomes a republic in <span class="a">1949</span></div>
+      <div class="stop"><span class="yr">1914</span> Assassination of Archduke <span class="a">Franz Ferdinand</span> triggers <span class="a">WWI</span> — which ends at <span class="a">11am, 11 November 1918</span></div>
+      <div class="stop"><span class="yr">1918</span> Women <span class="a">over 30</span> get the vote — recognising their <span class="a">WWI war effort</span>. Campaign led by the <span class="a">suffragettes</span> under <span class="a">Emmeline Pankhurst</span></div>
+      <div class="stop"><span class="yr">1928</span> Women vote at <span class="a">21, same as men</span></div>
+      <div class="stop"><span class="yr">1930s</span> <span class="a">Great Depression</span> hits heavy industry — especially <span class="a">shipbuilding</span></div>
+      <div class="stop"><span class="yr">1939</span> Germany invades <span class="a">Poland</span> → WWII. <span class="a">Winston Churchill</span> becomes wartime PM (voted <span class="a">greatest Briton, 2002</span>)</div>
+      <div class="stop"><span class="yr">1940</span> <span class="a">Dunkirk</span>: 300,000+ men rescued by small boats. <span class="a">Battle of Britain</span>: an <span class="a">aerial</span> battle won by the <span class="a">RAF</span></div>
+      <div class="stop"><span class="yr">1944</span> <span class="a">Butler Act</span> — <span class="a">free secondary education</span> (England &amp; Wales)</div>
+      <div class="stop"><span class="yr">1945</span> Labour wins; <span class="a">Clement Attlee</span> PM; the <span class="a">United Nations</span> set up <span class="a">after WWII</span></div>
+      <div class="stop"><span class="yr">1969</span> Voting age lowered to <span class="a">18</span></div>
+      <div class="stop"><span class="yr">1979–90</span> <span class="a">Margaret Thatcher</span> — <span class="a">first woman PM</span> and <span class="a">longest-serving of the 20th century</span>; succeeded by <span class="a">John Major</span> (NI peace process)</div>
+      <div class="stop"><span class="yr">1997</span> <span class="a">Tony Blair</span> (Labour) — introduces the <span class="a">Scottish Parliament and Welsh Assembly</span></div>
+      <div class="stop"><span class="yr">2010</span> Coalition: <span class="a">Conservatives + Liberal Democrats</span>, <span class="a">David Cameron</span> PM</div>
+      <div class="cue"><b class="tag">CUE</b>Votes for women: <b>years up, ages down</b> — 19<b>18</b>/age 30 → 19<b>28</b>/age 21 → 19<b>69</b>/age 18.</div>
+    </div>
+  </div>
+
+  <div class="era"><span class="era-name">Inventors &amp; scientists</span>
+    <div class="rail">
+      <div class="stop"><span class="yr">1687</span> <span class="a">Isaac Newton</span> — <span class="a">gravity</span> (Principia Mathematica)</div>
+      <div class="stop"><span class="yr">1920s</span> <span class="a">John Logie Baird</span> (Scot) — <span class="a">television</span></div>
+      <div class="stop"><span class="yr">1930s</span> <span class="a">Frank Whittle</span> — <span class="a">jet engine</span> · <span class="a">Robert Watson-Watt</span> — <span class="a">radar</span> · <span class="a">Alan Turing</span> — <span class="a">the Turing machine</span></div>
+      <div class="stop"><span class="yr">1930s</span> <span class="a">Ernest Rutherford</span> — first to <span class="a">split the atom</span> (Manchester → Cambridge)</div>
+      <div class="stop"><span class="yr">1953</span> <span class="a">Francis Crick</span> — structure of <span class="a">DNA</span> (Nobel Prize)</div>
+      <div class="stop"><span class="yr">1960s</span> Britain + <span class="a">France</span> develop <span class="a">Concorde</span>, the only supersonic airliner</div>
+      <div class="stop"><span class="yr">1990</span> <span class="a">Tim Berners-Lee</span> — the <span class="a">World Wide Web</span></div>
+      <div class="cue"><b class="tag">CUE</b>Sound-alikes: jets <b>whistle</b> → Whittle. Radar runs on <b>watts</b> → Watson-Watt. Baird <b>aired</b> TV. DNA <b>clicks</b> → Crick.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GOVERNMENT ================= -->
+<section id="gov" class="s-gov">
+  <div class="sec-head"><span class="tab" style="background:var(--blue)"></span><h2>Government &amp; Democracy</h2></div>
+  <div class="grid">
+    <div class="card"><h3>The system</h3>
+      <ul>
+        <li><span class="q">The UK is a</span> <span class="a">parliamentary democracy</span> with a <span class="a">constitutional monarchy</span></li>
+        <li><span class="q">Written constitution?</span> <span class="a">No — it is unwritten</span> (no single document)</li>
+        <li><span class="q">Not a constitutional institution:</span> <span class="a">the armed forces</span></li>
+        <li><span class="q">Parliament =</span> <span class="a">House of Commons + House of Lords</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>The monarch</h3>
+      <ul>
+        <li><span class="a">Appoints the government</span> chosen at election; <span class="a">advises, warns and encourages</span> the PM (who makes the actual decisions)</li>
+        <li><span class="q">Head of the</span> <span class="a">Church of England</span> (spiritual leader = <span class="a">Archbishop of Canterbury</span>)</li>
+        <li><span class="q">Appoints life peers</span> <span class="a">on the advice of the Prime Minister</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Commons, Lords &amp; the Speaker</h3>
+      <ul>
+        <li><span class="q">Debates in the Commons chaired by</span> <span class="a">the Speaker</span> — who <span class="a">is an MP with a constituency</span></li>
+        <li><span class="q">Lords (“peers”) are</span> <span class="a">not elected</span>; several <span class="a">Church of England bishops</span> sit there</li>
+        <li><span class="q">MPs’ jobs:</span> <span class="a">represent their constituency</span>, <span class="a">help create new laws</span>, scrutinise government, debate national issues</li>
+        <li><span class="q">Contact an MP by</span> <span class="a">letter, phone, constituency office or local surgeries</span> — not post-only</li>
+        <li><span class="q">Official reports of Parliament:</span> <span class="a">Hansard</span>; PM’s Questions happen <span class="a">every week</span></li>
+        <li><span class="q">Opposition’s senior team =</span> <span class="a">the shadow cabinet</span> — challenges government, offers alternatives</li>
+      </ul>
+    </div>
+    <div class="card"><h3>Elections &amp; voting</h3>
+      <ul>
+        <li><span class="q">General elections at least every</span> <span class="a">5 years</span>; MP dies/resigns → <span class="a">by-election</span></li>
+        <li><span class="q">Voting age</span> <span class="a">18</span> (set in <span class="a">1969</span>); before voting you’re sent a <span class="a">poll card</span></li>
+        <li><span class="q">Stand as MP / public office at</span> <span class="a">18</span> (exceptions: armed forces, civil servants, some convicts)</li>
+        <li><span class="q">Persuading people to vote for a party =</span> <span class="a">canvassing</span></li>
+        <li><span class="q">TV &amp; radio election coverage must be</span> <span class="a">balanced — equal time to rival views</span> (by law)</li>
+        <li><span class="q">‘Individual registration’ is used in</span> <span class="a">Northern Ireland</span> (not Scotland/Wales)</li>
+      </ul>
+    </div>
+    <div class="card"><h3>PM, ministers &amp; civil service</h3>
+      <ul>
+        <li><span class="q">PM’s official home:</span> <span class="a">10 Downing Street</span></li>
+        <li><span class="q">Home Secretary runs:</span> <span class="a">crime, policing and immigration</span></li>
+        <li><span class="q">Civil servants are</span> <span class="a">chosen on merit and politically neutral</span> — not appointed by government</li>
+        <li><span class="q">Towns and rural areas are run by</span> <span class="a">democratically elected councils (“local authorities”)</span> — not appointed officials</li>
+      </ul>
+    </div>
+    <div class="card"><h3>Devolution</h3>
+      <ul>
+        <li><span class="q">Wales — the Senedd:</span> <span class="a">60 members</span>, elected every <span class="a">4 years</span> by <span class="a">proportional representation</span></li>
+        <li><span class="q">Northern Ireland Assembly:</span> <span class="a">90 MLAs</span>, elected by <span class="a">PR</span>; it <span class="a">has been suspended</span> in the past</li>
+        <li><span class="q">Scottish Parliament can legislate on</span> <span class="a">education, health, civil/criminal law, planning, some taxes</span></li>
+        <li><span class="q">Devolved everywhere:</span> <span class="a">health &amp; education</span></li>
+        <li><span class="q">Stays with Westminster:</span> <span class="a">defence, foreign affairs, immigration, taxation, social security</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b><b>N</b>orthern Ireland = <b>N</b>inety; <b>S</b>enedd = <b>S</b>ixty. Westminster keeps anything with <b>an army, a border or a wallet</b>.</div>
+    </div>
+    <div class="card"><h3>Beyond the UK</h3>
+      <ul>
+        <li><span class="q">The Commonwealth:</span> <span class="a">an association of countries working towards democracy and development</span> — mostly ex-Empire</li>
+        <li><span class="q">The UN was set up</span> <span class="a">after the Second World War</span> to promote peace</li>
+        <li><span class="q">Is the BBC government-controlled?</span> <span class="a">No — state-funded but independent</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAW ================= -->
+<section id="law" class="s-law">
+  <div class="sec-head"><span class="tab" style="background:var(--magenta)"></span><h2>Law, Courts &amp; Everyday Rules</h2></div>
+  <div class="grid">
+    <div class="card"><h3>Juries</h3>
+      <ul>
+        <li><span class="q">Jury size in England, Wales &amp; NI:</span> <span class="a">12</span> — <span class="q">in Scotland:</span> <span class="a">15</span></li>
+        <li><span class="q">Chosen</span> <span class="a">randomly from the electoral register</span>, ages <span class="a">18–70</span></li>
+        <li><span class="q">Want jury duty? Be on the</span> <span class="a">electoral register</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>Scotland does it bigger: 12 → <b>15</b>. Same pattern as small claims: England £10k, Scotland/NI <b>£5k</b>.</div>
+    </div>
+    <div class="card"><h3>Courts</h3>
+      <ul>
+        <li><span class="q">Minor crime in England/Wales/NI:</span> <span class="a">Magistrates’ Court</span> · <span class="q">in Scotland:</span> <span class="a">Justice of the Peace Court</span></li>
+        <li><span class="q">Youth Court — ages</span> <span class="a">10–17</span>, heard by <span class="a">up to 3 trained magistrates or a District Judge</span>; public excluded, <span class="a">names/photos cannot be published</span>; the most serious cases go to <span class="a">Crown Court</span></li>
+        <li><span class="q">Small claims — an informal way to settle</span> <span class="a">minor disputes without a lawyer</span>: under <span class="a">£10,000</span> (England &amp; Wales), <span class="a">£5,000</span> (Scotland &amp; NI)</li>
+        <li><span class="q">Solicitors charge mostly by</span> <span class="a">time spent on the case</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>“Scotland keeps the <b>Peace</b>” — Justice of the <b>Peace</b> Court.</div>
+    </div>
+    <div class="card"><h3>Criminal vs civil</h3>
+      <ul>
+        <li><span class="q">Criminal offences:</span> <span class="a">racial crime, smoking where banned, selling alcohol to under-18s, FGM</span></li>
+        <li><span class="q">Civil law example:</span> <span class="a">discrimination in the workplace</span></li>
+        <li><span class="q">Violence towards a partner:</span> <span class="a">can be prosecuted</span> — and a husband forcing his wife to have sex <span class="a">is rape</span></li>
+        <li><span class="q">Forced marriage —</span> <span class="a">court orders can protect a person</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Police complaints</h3>
+      <ul>
+        <li><span class="q">Anyone can complain by</span> <span class="a">going to a police station</span> or <span class="a">writing to the Chief Constable</span></li>
+        <li><span class="q">Independent bodies:</span> <span class="a">IPCC (England &amp; Wales)</span>, <span class="a">Police Complaints Commissioner (Scotland)</span></li>
+        <li><span class="q">“Only by writing to X” statements are</span> <span class="a">False — there are always several routes</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Age limits</h3>
+      <ul>
+        <li><span class="a">16</span> — <span class="q">ride a moped; NCS programme; drink with a meal in a hotel/restaurant</span></li>
+        <li><span class="a">17</span> — <span class="q">drive a car or motorcycle (licence required)</span></li>
+        <li><span class="a">18</span> — <span class="q">vote; stand as MP; buy alcohol; betting shops &amp; gambling; jury service (to 70)</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>Escalator: <b>16 moped → 17 motor car → 18 (almost) everything else</b>.</div>
+    </div>
+    <div class="card"><h3>Everyday rules</h3>
+      <ul>
+        <li><span class="q">Dogs in public must wear a collar showing the</span> <span class="a">owner’s name and address</span></li>
+        <li><span class="q">To drive on public roads you need a</span> <span class="a">valid driving licence</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CULTURE ================= -->
+<section id="culture" class="s-cul">
+  <div class="sec-head"><span class="tab" style="background:var(--orange)"></span><h2>Culture, Sport &amp; Traditions</h2></div>
+  <div class="grid">
+    <div class="card"><h3>Religious calendar</h3>
+      <ul>
+        <li><span class="q">Christmas Day, 25 Dec —</span> <span class="a">birth of Jesus</span>; Boxing Day = <span class="a">26 Dec</span></li>
+        <li><span class="q">Easter (in</span> <span class="a">March or April</span><span class="q">): Good Friday =</span> <span class="a">Jesus’s death</span>, Easter Sunday = rising</li>
+        <li><span class="q">The 40 days before Easter:</span> <span class="a">Lent</span></li>
+        <li><span class="q">Diwali — celebrated by</span> <span class="a">Hindus and Sikhs</span>; called the <span class="a">Festival of Lights</span></li>
+        <li><span class="q">Eid al-Fitr —</span> <span class="a">end of Ramadan</span>, after a month of fasting</li>
+        <li><span class="q">Head of the Church of England:</span> <span class="a">the monarch</span>; Church of Scotland is <span class="a">Presbyterian</span>; Wales &amp; NI have <span class="a">no established church</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Secular days</h3>
+      <ul>
+        <li><span class="q">Halloween:</span> <span class="a">31 October</span> · <span class="q">April Fool’s:</span> <span class="a">1 April, jokes until midday</span></li>
+        <li><span class="q">Scottish New Year’s Eve (31 Dec):</span> <span class="a">Hogmanay</span>; New Year song = <span class="a">Auld Lang Syne</span></li>
+        <li><span class="q">Public holidays are called</span> <span class="a">bank holidays</span> — banks and businesses close</li>
+        <li><span class="q">Remembrance Day service is held at</span> <span class="a">the Cenotaph</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Sport</h3>
+      <ul>
+        <li><span class="q">Golf —</span> <span class="a">15th-century Scotland</span> · <span class="q">tennis —</span> <span class="a">Wimbledon</span></li>
+        <li><span class="q">Cricket vs Australia:</span> <span class="a">the Ashes</span> · <span class="q">rugby:</span> <span class="a">Six Nations</span></li>
+        <li><span class="q">Horse racing:</span> <span class="a">Grand National (Aintree)</span>, <span class="a">Royal Ascot (Berkshire, 5 days, royals attend)</span>, <span class="a">Scottish Grand National (Ayr)</span>; museum at <span class="a">Newmarket, Suffolk</span></li>
+        <li><span class="q">Thames rowing race:</span> <span class="a">Oxford vs Cambridge</span></li>
+        <li><span class="q">UK hosted the Olympics</span> <span class="a">3 times: 1908, 1948, 2012</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Sporting heroes</h3>
+      <ul>
+        <li><span class="q">1966 World Cup-winning captain:</span> <span class="a">Bobby Moore</span></li>
+        <li><span class="q">First 4-minute mile (1954):</span> <span class="a">Roger Bannister</span></li>
+        <li><span class="q">1972 Olympic pentathlon gold:</span> <span class="a">Mary Peters</span></li>
+        <li><span class="q">Famous Paralympians:</span> <span class="a">Tanni Grey-Thompson &amp; Ellie Simmonds</span> (Simmonds: swimming golds <span class="a">2008, 2012, 2016</span>)</li>
+      </ul>
+    </div>
+    <div class="card"><h3>Writers &amp; artists</h3>
+      <ul>
+        <li><span class="q">Shakespeare — born in</span> <span class="a">Stratford-upon-Avon</span>; wrote <span class="a">A Midsummer Night’s Dream, Macbeth</span></li>
+        <li><span class="q">‘The Daffodils’, inspired by nature:</span> <span class="a">William Wordsworth</span></li>
+        <li><span class="q">Sherlock Holmes:</span> <span class="a">Sir Arthur Conan Doyle</span></li>
+        <li><span class="q">Best-loved novel 2003:</span> <span class="a">The Lord of the Rings — JRR Tolkien</span></li>
+        <li><span class="q">Pop art (1960s):</span> <span class="a">David Hockney</span> · <span class="q">Art Deco ceramics:</span> <span class="a">Clarice Cliff</span></li>
+        <li><span class="q">‘Pomp and Circumstance’:</span> <span class="a">Sir Edward Elgar</span> (a musician)</li>
+      </ul>
+    </div>
+    <div class="card"><h3>Stage, screen &amp; prizes</h3>
+      <ul>
+        <li><span class="q">Silent-film tramp:</span> <span class="a">Charlie Chaplin</span></li>
+        <li><span class="q">Wallace &amp; Gromit’s creator (4 Oscars, animation):</span> <span class="a">Nick Park</span></li>
+        <li><span class="q">Highest-grossing UK film franchises:</span> <span class="a">Harry Potter &amp; James Bond</span></li>
+        <li><span class="q">Actress who has NOT won an Oscar:</span> <span class="a">Emily Watson</span></li>
+        <li><span class="q">Man Booker Prize:</span> <span class="a">fiction/literature</span> · <span class="q">Turner Prize:</span> <span class="a">contemporary art</span></li>
+        <li><span class="q">The Proms:</span> <span class="a">8-week summer classical music season</span> (Royal Albert Hall)</li>
+        <li><span class="q">“The Fringe” festival:</span> <span class="a">Edinburgh</span></li>
+      </ul>
+      <div class="cue"><b class="tag">CUE</b>Prize pairing: <b>Booker = books</b>; <b>Turner = (modern) art</b> — think Turner the painter.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NUMBERS ================= -->
+<section id="numbers">
+  <div class="sec-head"><span class="tab" style="background:var(--yellow)"></span><h2>Numbers that get tested</h2></div>
+  <div class="numgrid">
+    <div class="num"><span class="n">5 yrs</span><span class="l">max between general elections</span></div>
+    <div class="num"><span class="n">12 / 15</span><span class="l">jury: England, Wales &amp; NI / Scotland</span></div>
+    <div class="num"><span class="n">18–70</span><span class="l">jury service age range</span></div>
+    <div class="num"><span class="n">60</span><span class="l">Senedd members (every 4 yrs, PR)</span></div>
+    <div class="num"><span class="n">90</span><span class="l">NI Assembly MLAs</span></div>
+    <div class="num"><span class="n">15</span><span class="l">national parks (Eng, Wales, Scot)</span></div>
+    <div class="num"><span class="n">£10k / £5k</span><span class="l">small claims: E&amp;W / Scotland &amp; NI</span></div>
+    <div class="num"><span class="n">10–17</span><span class="l">Youth Court age range</span></div>
+    <div class="num"><span class="n">40</span><span class="l">days of Lent before Easter</span></div>
+    <div class="num"><span class="n">3</span><span class="l">UK Olympics: 1908 · 1948 · 2012</span></div>
+    <div class="num"><span class="n">⅓</span><span class="l">of England died in the Black Death</span></div>
+    <div class="num"><span class="n">~10%</span><span class="l">have a parent/grandparent born abroad</span></div>
+    <div class="num"><span class="n">116</span><span class="l">actual years of the Hundred Years War</span></div>
+    <div class="num"><span class="n">6,000</span><span class="l">years since the first farmers arrived</span></div>
+    <div class="num"><span class="n">300k</span><span class="l">soldiers rescued from Dunkirk</span></div>
+    <div class="num"><span class="n">10 hrs</span><span class="l">daily work cap, Factories Act 1847</span></div>
+  </div>
+</section>
+
+<!-- ================= TRAPS ================= -->
+<section id="traps" class="s-trap">
+  <div class="sec-head"><span class="tab" style="background:var(--brown)"></span><h2>Mind the gap — true/false traps</h2></div>
+  <p class="sec-note">These are the statements the exams love to twist. Learn the correction, not just the verdict.</p>
+  <div class="grid">
+    <div class="card"><h3>False — and why</h3>
+      <ul>
+        <li><span class="q">“The Bill of Rights (1689) gave votes to men / women”</span> — <span class="a">False: it confirmed Parliament’s rights and limited the king</span></li>
+        <li><span class="q">“Northern Ireland is part of Great Britain”</span> — <span class="a">False: GB = England, Scotland, Wales</span></li>
+        <li><span class="q">“St Helena / Falklands / Channel Islands are part of the UK”</span> — <span class="a">False: linked to the UK, not part of it</span></li>
+        <li><span class="q">“Wales / NI has its own established church”</span> — <span class="a">False: neither has one</span></li>
+        <li><span class="q">“Peers in the Lords are elected”</span> — <span class="a">False: they are appointed / inherit</span></li>
+        <li><span class="q">“Councils are government-appointed officials”</span> — <span class="a">False: democratically elected</span></li>
+        <li><span class="q">“You must be 21 to vote / stand as MP / sit on a jury”</span> — <span class="a">False: 18 for all three</span></li>
+        <li><span class="q">“The NI Assembly has never been suspended”</span> — <span class="a">False: it has, several times</span></li>
+        <li><span class="q">“Young offenders’ names can be published”</span> — <span class="a">False: Youth Court identities are protected</span></li>
+        <li><span class="q">“Scotland &amp; Wales use individual registration”</span> — <span class="a">False: that’s Northern Ireland</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>True — but sounds wrong</h3>
+      <ul>
+        <li><span class="q">Scottish &amp; NI banknotes are valid</span> <span class="a">everywhere in the UK — True</span></li>
+        <li><span class="q">Church of England bishops sit in the House of Lords —</span> <span class="a">True</span></li>
+        <li><span class="q">The Speaker is a regular MP with constituents —</span> <span class="a">True</span></li>
+        <li><span class="q">A husband who forces his wife to have sex commits rape —</span> <span class="a">True</span></li>
+        <li><span class="q">You can complain about police straight to the Chief Constable —</span> <span class="a">True (and other routes exist)</span></li>
+        <li><span class="q">The BBC is state-funded yet independent of government —</span> <span class="a">True</span></li>
+      </ul>
+    </div>
+    <div class="card"><h3>Easily-confused pairs</h3>
+      <ul>
+        <li><span class="a">Trafalgar 1805 (Nelson, sea, dies)</span> <span class="q">vs</span> <span class="a">Waterloo 1815 (Wellington, land, wins)</span></li>
+        <li><span class="a">1918 = women 30+</span> <span class="q">vs</span> <span class="a">1928 = equal at 21</span></li>
+        <li><span class="a">Magistrates’ Court (E/W/NI)</span> <span class="q">vs</span> <span class="a">Justice of the Peace Court (Scotland)</span></li>
+        <li><span class="a">Crown dependencies = Channel Is. + Isle of Man</span> <span class="q">vs</span> <span class="a">overseas territories = St Helena + Falklands</span></li>
+        <li><span class="a">Cavaliers = King</span> <span class="q">vs</span> <span class="a">Roundheads = Parliament</span></li>
+        <li><span class="a">Charles I — executed 1649</span> <span class="q">vs</span> <span class="a">Charles II — oak tree, restored 1660</span></li>
+        <li><span class="a">Domesday Book = survey</span> <span class="q">vs</span> <span class="a">Bayeux Tapestry = battle embroidery</span> (both tell of William I’s England)</li>
+        <li><span class="a">Reformation = against the Pope (Henry VIII)</span> <span class="q">vs</span> <span class="a">Enlightenment = new ideas, 18th century</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Compiled from the 17 practice exams (404 unique questions) at lifeintheuktestweb.co.uk, which follow the official
+  “Life in the United Kingdom: A Guide for New Residents” handbook. Facts reflect the handbook’s content as tested —
+  a few details (e.g. named politicians) are historical test answers rather than current officeholders. Good luck — you only need 18 of 24.
+</footer>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('quizToggle');
+  btn.addEventListener('click', function(){
+    var on = document.body.classList.toggle('quiz');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.textContent = on ? 'Show answers' : 'Test yourself';
+    if(!on){
+      document.querySelectorAll('.a.show, .num .n.show').forEach(function(el){ el.classList.remove('show'); });
+    }
+  });
+  document.addEventListener('click', function(e){
+    if(!document.body.classList.contains('quiz')) return;
+    var t = e.target.closest('.a, .num .n');
+    if(t) t.classList.add('show');
+  });
+})();
+</script>
+</body>
+
+</html>

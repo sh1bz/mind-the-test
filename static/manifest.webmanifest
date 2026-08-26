@@ -1,1 +1,1 @@
-{ "name": "Life in the UK", "short_name": "Life in UK", "start_url": "/", "display": "standalone", "background_color": "#FBFAF6", "theme_color": "#DC241F", "icons": [] }
+{ "name": "Mind the Test", "short_name": "Mind the Test", "description": "Pass your Life in the UK test", "start_url": "/", "display": "standalone", "background_color": "#F4F7FB", "theme_color": "#2457C5", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

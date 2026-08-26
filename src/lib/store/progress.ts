@@ -10,10 +10,11 @@ export type Progress = {
 	exam?: string; // YYYY-MM-DD
 	mocks: Mock[];
 	days: Record<string, Day>; // YYYY-MM-DD → answers that day
+	ms: Record<string, number>; // milestone id → when it was first reached
 	updatedAt: number;
 };
 
-export const empty = (): Progress => ({ v: 2, items: {}, mocks: [], days: {}, updatedAt: 0 });
+export const empty = (): Progress => ({ v: 2, items: {}, mocks: [], days: {}, ms: {}, updatedAt: 0 });
 
 export const dayKey = (ms: number) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const examMs = (p: Progress) => (p.exam ? Date.parse(p.exam + 'T09:00:00') : undefined);
@@ -37,7 +38,7 @@ export function parse(raw: unknown, legacyIds: string[], now: number): Progress 
 		const items: Record<string, ItemState> = {};
 		for (const [id, v] of Object.entries(r.items as Record<string, unknown>)) if (v && typeof v === 'object') items[id] = sanitize(v as Record<string, unknown>);
 		const exam = typeof r.exam === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.exam) ? r.exam : undefined;
-		return { v: 2, items, exam, mocks: Array.isArray(r.mocks) ? (r.mocks as Mock[]) : [], days: r.days && typeof r.days === 'object' ? (r.days as Record<string, Day>) : {}, updatedAt: num(r.updatedAt, 0) };
+		return { v: 2, items, exam, mocks: Array.isArray(r.mocks) ? (r.mocks as Mock[]) : [], days: r.days && typeof r.days === 'object' ? (r.days as Record<string, Day>) : {}, ms: r.ms && typeof r.ms === 'object' ? (r.ms as Record<string, number>) : {}, updatedAt: num(r.updatedAt, 0) };
 	}
 	if (r.items && typeof r.items === 'object' && !('v' in r)) {
 		const items: Record<string, ItemState> = {};
@@ -64,6 +65,7 @@ export function merge(a: Progress, b: Progress): Progress {
 		const x = a.days[d] ?? { n: 0, ok: 0 }, y = b.days[d] ?? { n: 0, ok: 0 };
 		out.days[d] = x.n >= y.n ? x : y;
 	}
+	for (const k of new Set([...Object.keys(a.ms ?? {}), ...Object.keys(b.ms ?? {})])) out.ms[k] = Math.min(a.ms?.[k] ?? Infinity, b.ms?.[k] ?? Infinity);
 	const newer = a.updatedAt >= b.updatedAt ? a : b;
 	out.exam = newer.exam;
 	out.updatedAt = Math.max(a.updatedAt, b.updatedAt);

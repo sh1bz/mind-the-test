@@ -1,0 +1,60 @@
+<script lang="ts">
+	import { app } from '$lib/store/app.svelte';
+	import { nav } from '$lib/ui/nav.svelte';
+	import { QUESTIONS, TOPICS, TOPIC_COLORS, CARD_BY_ID } from '$lib/content';
+	import { isKnown, isNew } from '$lib/engine/scheduler';
+	import { dueBadge, correctText } from '$lib/ui/derive';
+	const now = Date.now();
+	const st = (id: string) => app.item(id);
+	type F = 'all' | 'wrong' | 'flagged' | 'learning' | 'unseen' | 'known';
+	const filters: { id: F; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'wrong', label: 'Wrong' }, { id: 'flagged', label: 'Flagged' }, { id: 'learning', label: 'Learning' }, { id: 'unseen', label: 'Unseen' }, { id: 'known', label: 'Known' }];
+	let f = $state<F>('all');
+	let topic = $state<number | null>(null);
+	let search = $state('');
+	let open = $state<string | null>(null);
+	let shown = $state(60);
+	const match = (id: string) => { const s = st(id); switch (f) { case 'wrong': return s.lapses > 0 && !isKnown(s); case 'flagged': return !!s.flag; case 'learning': return !isNew(s) && !isKnown(s); case 'unseen': return isNew(s); case 'known': return isKnown(s); default: return true; } };
+	const list = $derived.by(() => {
+		const term = search.trim().toLowerCase();
+		return QUESTIONS.filter((q) => (topic === null || q.t === topic) && match(q.id) && (!term || (q.q + ' ' + q.o.join(' ')).toLowerCase().includes(term)))
+			.sort((a, b) => st(b.id).lapses - st(a.id).lapses);
+	});
+	const counts = $derived({ known: list.filter((q) => isKnown(st(q.id))).length, unseen: list.filter((q) => isNew(st(q.id))).length });
+	$effect(() => { f; topic; search; shown = 60; });
+</script>
+
+<div class="wrapchips">{#each filters as x (x.id)}<button class="chip" class:on={f === x.id} type="button" aria-pressed={f === x.id} onclick={() => (f = x.id)}>{x.label}</button>{/each}</div>
+<div class="wrapchips">
+	<button class="chip" class:on={topic === null} type="button" onclick={() => (topic = null)}>All topics</button>
+	{#each TOPICS as name, t (t)}<button class="chip" class:on={topic === t} type="button" aria-pressed={topic === t} onclick={() => (topic = topic === t ? null : t)}><span class="dot" style="background:var(--{TOPIC_COLORS[t]})"></span>{name}</button>{/each}
+</div>
+<input class="field" type="search" placeholder="Search questions" aria-label="Search questions" bind:value={search} style="min-height:40px;padding:9px 12px" />
+<p class="muted small num">{list.length} question{list.length === 1 ? '' : 's'} — {counts.known} known · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</p>
+{#if list.length}
+	<button class="big" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: null, ids: list.map((q) => q.id), title: `Test ${list.length}` })}>Test these {list.length} <span class="arrow">›</span></button>
+{/if}
+<div>
+	{#each list.slice(0, shown) as q (q.id)}
+		{@const s = st(q.id)}
+		{@const b = dueBadge(s, now)}
+		<button class="wrow" type="button" aria-expanded={open === q.id} onclick={() => (open = open === q.id ? null : q.id)}>
+			<span class="tdot" style="background:var(--{TOPIC_COLORS[q.t]})"></span>
+			<span style="flex:1"><b>{q.q}</b>{#if !isNew(s) || open === q.id}<span class="muted">{correctText(q)}</span>{/if}
+				{#if open === q.id}
+					<span class="muted" style="display:block;margin-top:6px;font-size:12.5px">{q.e}</span>
+					<span class="wrapchips" style="margin-top:8px">
+						<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+						<span class="chip" class:on={!!s.flag} role="button" tabindex="0" onclick={(e) => { e.stopPropagation(); app.toggleFlag(q.id); }}>{s.flag ? 'Flagged' : 'Flag'}</span>
+						{#if q.card && CARD_BY_ID[q.card]}
+							<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+							<span class="chip" role="button" tabindex="0" onclick={(e) => { e.stopPropagation(); nav.openMap(CARD_BY_ID[q.card!].section.id); }}>On the map</span>
+						{/if}
+					</span>
+				{/if}
+			</span>
+			{#if s.lapses}<span class="zb w">✕{s.lapses}</span>{/if}
+			<span class="zb {b.cls}">{b.text}</span>
+		</button>
+	{/each}
+	{#if list.length > shown}<button class="chip" type="button" style="margin-top:10px" onclick={() => (shown += 60)}>Show more · {list.length - shown} left</button>{/if}
+</div>

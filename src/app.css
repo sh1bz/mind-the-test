@@ -227,9 +227,8 @@ button.qrow:active { background: var(--soft); }
 .navbtn { border: 0; background: var(--soft); border-radius: var(--rc); min-width: 36px; min-height: 36px; font-size: 20px; color: var(--blue); font-weight: 600; }
 
 /* sheet */
-.sheet-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
-.sheet { background: var(--bg); border-radius: 18px 18px 0 0; width: 100%; max-width: 560px; max-height: 85dvh; overflow: auto; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; }
-.sheet .grab { width: 36px; height: 5px; border-radius: 3px; background: var(--soft2); margin: 0 auto 6px; flex: none; }
+.sheet-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.sheet { background: var(--bg); border-radius: 18px; width: 100%; max-width: 560px; max-height: 85dvh; overflow: auto; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
 
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

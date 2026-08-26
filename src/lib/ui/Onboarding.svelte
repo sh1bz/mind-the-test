@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { app } from '$lib/store/app.svelte';
-	import { nav } from '$lib/ui/nav.svelte';
 	import { QUESTIONS } from '$lib/content';
 	import { newPerDay } from '$lib/engine/readiness';
 	import { daysLeft } from '$lib/ui/derive';
@@ -59,7 +58,7 @@
 			<button class="big" type="button" onclick={() => step++}>Next <span class="arrow">›</span></button>
 		{:else}
 			<button class="big" type="button" disabled={!picked} onclick={save}>Save date <span class="arrow">›</span></button>
-			<button class="big ghost" type="button" onclick={() => { save(); nav.startMock(true); }}><span>Find out where I stand<small>24 questions · about 10 min</small></span><span class="arrow">›</span></button>
+			<button class="big ghost" type="button" onclick={ondone}>Set it later</button>
 		{/if}
 	</div>
 </Sheet>

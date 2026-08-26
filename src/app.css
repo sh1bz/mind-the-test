@@ -212,7 +212,7 @@ button.qrow:active { background: var(--soft); }
 /* tabs */
 .tabs { position: fixed; left: 0; right: 0; bottom: 0; border-top: 0.5px solid var(--hair); background: rgba(249, 249, 249, 0.92); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
 .tabs .in { display: flex; width: 100%; max-width: 560px; }
-.tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; padding: 6px 0 4px; color: var(--faint); font-weight: 500; text-decoration: none; min-height: var(--tabs-h); }
+.tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; padding: 6px 0 4px; color: var(--muted); font-weight: 500; text-decoration: none; min-height: var(--tabs-h); }
 .tabs a.on { color: var(--blue); }
 .tabs svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .tabs a.on svg { stroke-width: 2.1; }

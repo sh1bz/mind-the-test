@@ -2,7 +2,7 @@
 // when signed in. Sign-in merges local progress into the account, so nothing is lost.
 import { browser } from '$app/environment';
 import { QUESTIONS } from '$lib/content';
-import { fresh, grade, type ItemState } from '$lib/engine/scheduler';
+import { fresh, grade, relearn as relearnItem, type ItemState } from '$lib/engine/scheduler';
 import { empty, merge, parse, dayKey, examMs, type Progress, type Mock } from './progress';
 import { supabase, supabaseEnabled } from './supabase';
 

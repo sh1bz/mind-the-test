@@ -123,7 +123,7 @@ button.lrow:active { background: var(--soft); }
 .gauge circle.fg { transition: stroke-dashoffset 400ms ease-out; }
 .gauge .pct { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .gauge .pct b { font-weight: 800; font-size: 26px; line-height: 1; letter-spacing: -0.03em; }
-.gauge .pct span { font-size: 9px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; margin-top: 3px; }
+.gauge .pct span { font-size: 9px; line-height: 1.2; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; margin-top: 3px; text-align: center; white-space: pre-line; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 13px; color: var(--muted); }
 .stats b { display: block; color: var(--ink); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
 

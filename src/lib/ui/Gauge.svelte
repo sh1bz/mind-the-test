@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	let { value, label = 'pass chance' }: { value: number; label?: string } = $props();
+	let { value, label = 'pass\nchance' }: { value: number; label?: string } = $props();
 	const R = 44, C = 2 * Math.PI * R;
 	let shown = $state(0);
 	let settled = false;

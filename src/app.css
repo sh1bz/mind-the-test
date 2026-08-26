@@ -41,9 +41,7 @@ a { color: var(--blue); }
 
 /* brand */
 .brand { display: flex; align-items: center; gap: 10px; }
-.ring { width: 26px; height: 26px; border-radius: 50%; border: 4px solid var(--red); position: relative; flex: none; }
-.ring::after { content: ''; position: absolute; left: -8px; right: -8px; top: 50%; height: 5px; transform: translateY(-50%); background: var(--blue); }
-.ring.lg { width: 30px; height: 30px; border-width: 5px; }
+.logo { width: 30px; height: 30px; flex: none; fill: none; stroke: var(--blue); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* icon tiles */
 .ic { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; flex: none; color: #fff; }

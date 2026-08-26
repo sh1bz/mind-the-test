@@ -39,9 +39,25 @@ a { color: var(--blue); }
 .sec h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .sec .more { font-size: 15px; color: var(--blue); font-weight: 500; background: none; border: 0; padding: 0; }
 
-/* brand */
-.brand { display: flex; align-items: center; gap: 10px; }
 .logo { width: 30px; height: 30px; flex: none; fill: none; stroke: var(--blue); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.logo.tile { width: 64px; height: 64px; align-self: center; margin-top: 6px; stroke: #fff; stroke-width: 7; }
+.logo.tile rect { fill: var(--blue); stroke: none; }
+.onb { display: flex; flex-direction: column; gap: 18px; padding: 2px 4px 6px; }
+.onb h3 { font-size: 24px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.onb p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink2); }
+.onb .flow .lrow { min-height: 46px; padding: 6px 14px; font-size: 15px; }
+.onb .flow .lrow + .lrow::before { left: 52px; }
+.onb .n { width: 26px; height: 26px; border-radius: 50%; background: var(--soft); display: grid; place-items: center; font-size: 13px; font-weight: 700; flex: none; }
+.onb .n.bad { background: var(--bad); color: #fff; }
+.onb .n.ok { background: var(--ok); color: #fff; }
+.onb .flow .v { font-size: 13px; text-align: right; white-space: normal; }
+.onb .hlist { display: flex; flex-direction: column; gap: 14px; }
+.onb .hlist div { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.45; color: var(--ink2); }
+.onb .hlist .ic { flex: none; }
+.onb .dots { display: flex; gap: 6px; justify-content: center; margin: 4px 0 -6px; }
+.onb .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--soft); }
+.onb .dots i.on { background: var(--blue); }
+.onb .big:disabled { opacity: 0.4; }
 
 /* icon tiles */
 .ic { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; flex: none; color: #fff; }

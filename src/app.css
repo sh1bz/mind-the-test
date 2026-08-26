@@ -2,7 +2,7 @@
 :root {
 	--bg: #f4f7fb; --card: #ffffff; --ink: #1f2a44; --muted: #5f6b85; --faint: #8f98ae; --hair: #e1e6ef; --soft: #eef3fa;
 	--red: #d9302a; --blue: #2457c5; --green: #1e8e4b; --cyan: #1e9bd7; --magenta: #b0367a; --orange: #ee7a1a; --yellow: #ffd84d; --brown: #b8792e;
-	--ok: #1e8e4b; --okbg: #e6f5eb; --bad: #d9302a; --badbg: #fdeceb; --warnbg: #fff6cc; --mark: #ffe45c;
+	--ok: #1e8e4b; --okbg: #e6f5eb; --bad: #d9302a; --badbg: #fdeceb; --warnbg: #fff6cc;
 	--plan: #e7f0ff;
 	--shadow: 0 1px 2px rgba(31, 42, 68, 0.05), 0 6px 20px rgba(31, 42, 68, 0.05);
 	--display: 'Hammersmith One', 'Gill Sans', Calibri, system-ui, sans-serif;
@@ -126,9 +126,9 @@ button.line:hover { background: var(--soft); }
 .stop { border-left: 3px solid var(--red); background: var(--soft); padding: 10px 12px; border-radius: 0 8px 8px 0; font-size: 13px; text-align: left; width: 100%; border-top: 0; border-right: 0; border-bottom: 0; }
 .stop .yr { font-weight: 700; color: var(--red); margin-right: 6px; }
 .stop .hd { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 3px; }
-.a { font-weight: 700; background: linear-gradient(transparent 62%, var(--mark) 62%); padding: 0 2px; margin: 0 -2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.a { font-weight: 700; color: var(--blue); }
 .blur .a { filter: blur(5px); background: none; cursor: pointer; }
-.blur .a.show { filter: none; background: linear-gradient(transparent 62%, var(--mark) 62%); }
+.blur .a.show { filter: none; }
 .timer { font-family: var(--display); font-size: 28px; letter-spacing: 0.02em; }
 .timer.low { color: var(--bad); }
 .result { text-align: center; padding: 18px 10px 14px; background: var(--okbg); border-radius: 12px; position: relative; }

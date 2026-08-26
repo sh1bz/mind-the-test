@@ -52,3 +52,13 @@ describe('session', () => {
 		expect(out.sort()).toEqual(['q1', 'q2', 'q3']);
 	});
 });
+
+describe('session regressions', () => {
+	it('a wrong answer in a tiny pool never duplicates the card in the queue', () => {
+		const { ctx } = mk(3);
+		const s = new Session('smart', ctx);
+		const c = s.next()!; s.answer(c, false);
+		const ids = s.queue.map((x) => x.id);
+		expect(ids.filter((id) => id === c.id).length).toBe(1);
+	});
+});

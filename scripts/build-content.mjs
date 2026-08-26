@@ -12,7 +12,7 @@ const raw = JSON.parse(trainer.match(/const DATA = (\[.*?\]);\n/s)[1]);
 const seen = new Map();
 const questions = [];
 for (const q of raw) {
-	const key = q.q.trim().toLowerCase();
+	const key = (q.q.trim() + '|' + q.o.map((o) => o.trim()).sort().join('|')).toLowerCase();
 	if (seen.has(key)) continue;
 	seen.set(key, true);
 	questions.push({ id: `q${String(questions.length + 1).padStart(3, '0')}`, q: q.q.trim(), o: q.o, c: q.c, e: q.e.trim(), t: q.t });
@@ -67,7 +67,7 @@ const STOP = new Set('the a an of in on and or to is was for by with which what 
 const tok = (s) => (s.toLowerCase().replace(/[’']/g, '').match(/[a-z0-9]{3,}/g) || []).filter((w) => !STOP.has(w));
 const cardIndex = [];
 for (const s of sections) for (const c of s.cards) {
-	const words = new Set(tok(c.title + ' ' + c.items.map((i) => i.text).join(' ')));
+	const words = new Set(tok(c.title + ' ' + (c.head ?? []).join(' ') + ' ' + c.items.map((i) => i.text).join(' ')));
 	cardIndex.push({ id: c.id, topic: s.topic, words, size: words.size });
 }
 let unlinked = 0;

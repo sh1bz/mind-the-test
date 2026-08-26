@@ -29,10 +29,10 @@ export class Session {
 	get length() { return this.queue.length; }
 
 	/** Fill up to 15 cards: due-and-lapsed first, a few clean reviews, then new, then anything unproven. */
-	refill() {
+	refill(current?: string) {
 		const { ids, state, now, rand } = this.ctx;
 		const t = now();
-		const avoid = new Set([...this.queue.map((c) => c.id), ...this.recent]);
+		const avoid = new Set([...this.queue.map((c) => c.id), ...this.recent, ...(current ? [current] : [])]);
 		const cand = ids.filter((id) => !avoid.has(id) && !isKnown(state(id)));
 		const byDue = (a: string, b: string) => state(a).due - state(b).due;
 		const LIMIT = 15, NEW = this.ctx.newPerRefill ?? LIMIT;
@@ -54,10 +54,7 @@ export class Session {
 			if (!rest.length) rest = cand.sort((a, b) => (state(a).ivl - state(b).ivl) || byDue(a, b));
 			add = rest.slice(0, LIMIT);
 		}
-		if (!add.length) {
-			const inQ = new Set(this.queue.map((c) => c.id));
-			add = ids.filter((id) => !inQ.has(id) && !isKnown(state(id))).slice(0, LIMIT);
-		}
+		if (!add.length) add = ids.filter((id) => !avoid.has(id) && !isKnown(state(id))).slice(0, LIMIT);
 		this.queue.push(...shuffle(add, rand).map((id) => ({ id, attempted: false, needed: 1 })));
 	}
 
@@ -68,7 +65,7 @@ export class Session {
 
 	private reinsert(card: Card, min: number, max: number) {
 		const gap = min + Math.floor(this.ctx.rand() * (max - min + 1));
-		while (this.mode === 'smart' && this.queue.length < gap) { const before = this.queue.length; this.refill(); if (this.queue.length === before) break; }
+		while (this.mode === 'smart' && this.queue.length < gap) { const before = this.queue.length; this.refill(card.id); if (this.queue.length === before) break; }
 		this.queue.splice(Math.min(gap, this.queue.length), 0, card);
 	}
 

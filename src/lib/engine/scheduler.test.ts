@@ -45,3 +45,11 @@ describe('scheduler', () => {
 		expect(fromLegacy({ b: 0, due: 0, s: 0, w: 0 }, T0).seen).toBe(0);
 	});
 });
+
+describe('scheduler regressions', () => {
+	it('a past exam date no longer caps intervals', () => {
+		let s = fresh();
+		for (let i = 0; i < 4; i++) s = grade(s, true, T0 + i * DAY, T0 - DAY);
+		expect(s.ivl).toBeGreaterThan(3);
+	});
+});

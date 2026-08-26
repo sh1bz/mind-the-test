@@ -8,5 +8,5 @@ const KEY = env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 export const supabaseEnabled = !!URL && !!KEY && URL.startsWith('http');
 
 export const supabase = supabaseEnabled
-	? createClient(URL, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } })
+	? createClient(URL, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'implicit' } })
 	: null;

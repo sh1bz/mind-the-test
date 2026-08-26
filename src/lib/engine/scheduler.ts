@@ -51,7 +51,7 @@ export function grade(s: ItemState, correct: boolean, now: number, exam?: number
 	else if (n.reps === 2) n.ivl = SECOND_IVL;
 	else n.ivl = Math.round(n.ivl * n.ease);
 	n.ease = Math.min(MAX_EASE, n.ease + 0.05);
-	if (exam) {
+	if (exam && exam > now) {
 		const daysLeft = Math.max(1, Math.floor((exam - now) / DAY));
 		// Never schedule past the day before the exam; keep at least one more pass inside the window.
 		n.ivl = Math.max(1, Math.min(n.ivl, Math.max(1, Math.floor(daysLeft / 2))));

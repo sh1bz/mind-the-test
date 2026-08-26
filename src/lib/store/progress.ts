@@ -1,6 +1,6 @@
 // Progress blob: everything a learner owns. Local-first; merged across devices on sign-in.
 import type { ItemState } from '$lib/engine/scheduler';
-import { fromLegacy } from '$lib/engine/scheduler';
+import { fromLegacy, fresh, MIN_EASE, MAX_EASE } from '$lib/engine/scheduler';
 
 export type Mock = { at: number; score: number; total: number; secs: number; wrong: string[] };
 export type Day = { n: number; ok: number };
@@ -15,15 +15,29 @@ export type Progress = {
 
 export const empty = (): Progress => ({ v: 2, items: {}, mocks: [], days: {}, updatedAt: 0 });
 
-export const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+export const dayKey = (ms: number) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const examMs = (p: Progress) => (p.exam ? Date.parse(p.exam + 'T09:00:00') : undefined);
+
+const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
+/** Coerce an item from any source into a valid ItemState. */
+export function sanitize(v: Record<string, unknown>): ItemState {
+	const f = fresh();
+	return {
+		reps: Math.max(0, num(v.reps, f.reps)), lapses: Math.max(0, num(v.lapses, f.lapses)),
+		ease: Math.min(MAX_EASE, Math.max(MIN_EASE, num(v.ease, f.ease))), ivl: Math.max(0, num(v.ivl, f.ivl)),
+		due: num(v.due, f.due), last: num(v.last, f.last), seen: Math.max(0, num(v.seen, f.seen)), flag: v.flag ? 1 : 0
+	};
+}
 
 /** Parse any stored/exported blob: v2, or the legacy trainer export ({items:{idx:{b,due,s,w,f}}}). */
 export function parse(raw: unknown, legacyIds: string[], now: number): Progress | null {
 	if (!raw || typeof raw !== 'object') return null;
 	const r = raw as Record<string, unknown>;
 	if (r.v === 2 && r.items && typeof r.items === 'object') {
-		return { ...empty(), ...(r as Partial<Progress>), v: 2, items: r.items as Record<string, ItemState>, mocks: (r.mocks as Mock[]) ?? [], days: (r.days as Record<string, Day>) ?? {} };
+		const items: Record<string, ItemState> = {};
+		for (const [id, v] of Object.entries(r.items as Record<string, unknown>)) if (v && typeof v === 'object') items[id] = sanitize(v as Record<string, unknown>);
+		const exam = typeof r.exam === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.exam) ? r.exam : undefined;
+		return { v: 2, items, exam, mocks: Array.isArray(r.mocks) ? (r.mocks as Mock[]) : [], days: r.days && typeof r.days === 'object' ? (r.days as Record<string, Day>) : {}, updatedAt: num(r.updatedAt, 0) };
 	}
 	if (r.items && typeof r.items === 'object' && !('v' in r)) {
 		const items: Record<string, ItemState> = {};
@@ -51,7 +65,7 @@ export function merge(a: Progress, b: Progress): Progress {
 		out.days[d] = x.n >= y.n ? x : y;
 	}
 	const newer = a.updatedAt >= b.updatedAt ? a : b;
-	out.exam = newer.exam ?? a.exam ?? b.exam;
+	out.exam = newer.exam;
 	out.updatedAt = Math.max(a.updatedAt, b.updatedAt);
 	return out;
 }

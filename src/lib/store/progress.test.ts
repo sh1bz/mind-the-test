@@ -26,3 +26,18 @@ describe('progress', () => {
 		expect(streakDays({ [d(2)]: { n: 1, ok: 1 } }, T0)).toBe(0);
 	});
 });
+
+describe('progress regressions', () => {
+	it('a cleared exam date stays cleared after merge', () => {
+		const a = empty(), b = empty(); a.exam = '2026-09-10'; a.updatedAt = 1; b.updatedAt = 2;
+		expect(merge(a, b).exam).toBeUndefined();
+	});
+	it('dayKey uses local time', () => {
+		const d = new Date(2026, 7, 26, 0, 30);
+		expect(dayKey(d.getTime())).toBe('2026-08-26');
+	});
+	it('sanitizes bad item values on import', () => {
+		const p = parse({ v: 2, items: { q001: { reps: 'x', ease: 99, ivl: -3, seen: 2, flag: 'y' } } }, [], T0)!;
+		expect(p.items.q001).toMatchObject({ reps: 0, ease: 3, ivl: 0, seen: 2, flag: 1 });
+	});
+});

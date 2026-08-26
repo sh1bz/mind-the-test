@@ -19,12 +19,11 @@ class AppStore {
 
 	constructor() {
 		if (!browser) return;
-		try {
-			const raw = localStorage.getItem(KEY);
-			let p = raw ? parse(JSON.parse(raw), IDS, Date.now()) : null;
-			if (!p) { const legacy = localStorage.getItem(LEGACY_KEY); if (legacy) p = parse(JSON.parse(legacy), IDS, Date.now()); }
-			if (p) this.progress = p;
-		} catch { this.storageOk = false; }
+		try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch { this.storageOk = false; }
+		for (const key of [KEY, LEGACY_KEY]) {
+			try { const raw = localStorage.getItem(key); const p = raw ? parse(JSON.parse(raw), IDS, Date.now()) : null; if (p) { this.progress = p; break; } } catch { /* unreadable copy: start fresh */ }
+		}
+		if (this.exam && this.exam < Date.now() - 86_400_000) { this.progress.exam = undefined; }
 		if (supabaseEnabled) this.initAuth();
 	}
 
@@ -42,7 +41,12 @@ class AppStore {
 	toggleFlag(id: string) { const s = this.item(id); this.progress.items[id] = { ...s, flag: s.flag ? 0 : 1 }; this.persist(); }
 	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); }
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }
-	reset() { this.progress = empty(); this.persist(); }
+	async reset() {
+		this.cancelPush();
+		if (this.user) { try { await supabase!.from('progress').delete().eq('user_id', this.user.id); } catch { /* the push below overwrites anyway */ } }
+		this.progress = empty(); this.persist();
+	}
+	private cancelPush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; } }
 	importBlob(raw: string): boolean {
 		try { const p = parse(JSON.parse(raw), IDS, Date.now()); if (!p) return false; this.progress = merge(this.progress, p); this.persist(); return true; }
 		catch { return false; }
@@ -98,6 +102,7 @@ class AppStore {
 	}
 	/** Delete the account's data on the server, sign out, and clear this device. */
 	async deleteEverything() {
+		this.cancelPush();
 		if (this.user) { try { await supabase!.from('progress').delete().eq('user_id', this.user.id); } catch { /* best effort */ } await this.signOut(); }
 		this.progress = empty();
 		if (browser) { localStorage.removeItem(KEY); localStorage.removeItem(LEGACY_KEY); }

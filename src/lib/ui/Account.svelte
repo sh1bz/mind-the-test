@@ -2,6 +2,7 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { fmtLong } from '$lib/ui/derive';
+	import { FREE_QUESTIONS, FREE_MOCKS, PRICE, freeUsed } from '$lib/engine/gate';
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
 	import Sheet from './Sheet.svelte';
@@ -25,6 +26,7 @@
 	}
 	async function importFile() { const f = file.files?.[0]; if (!f) return; importMsg = app.importBlob(await f.text()) ? 'Imported and merged.' : 'That file is not a progress export.'; file.value = ''; }
 	const syncWord = $derived(app.user ? app.sync : 'local');
+	const used = $derived(freeUsed(app.gate));
 </script>
 
 <div class="datehd">Until It Sticks</div>
@@ -66,6 +68,16 @@
 		<button class="lrow ic-sep" type="button" onclick={() => (editDate = true)}><Ic name="calendar" color="var(--red)" />{app.progress.exam ? fmtLong(app.progress.exam) : 'Not set'}<span class="v" style="color:var(--blue)">{app.progress.exam ? 'Change' : 'Set'}</span><span class="chev">›</span></button>
 	</div>
 {/if}
+
+<div class="sec"><h2>Unlock</h2></div>
+<div class="list">
+	{#if app.paid}
+		<div class="lrow ic-sep"><Ic name="check" color="var(--green)" />Full access<span class="v" style="color:var(--green);font-size:15px">Unlocked</span></div>
+	{:else}
+		<button class="lrow ic-sep" type="button" onclick={() => (nav.paywall = 'gate')}><Ic name="star" color="var(--blue)" />Full access<span class="v muted" style="font-size:15px;font-weight:400">{PRICE} once</span><span class="chev">›</span></button>
+	{/if}
+</div>
+{#if !app.paid}<p class="muted small" style="padding:0 4px">Free: {FREE_QUESTIONS} questions and {FREE_MOCKS} mock. You have used {used.questions} and {used.mocks}.</p>{/if}
 
 <div class="sec"><h2>Help</h2></div>
 <div class="list">

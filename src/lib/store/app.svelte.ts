@@ -7,12 +7,15 @@ import { empty, merge, parse, dayKey, examMs, type Progress, type Mock } from '.
 import { supabase, supabaseEnabled } from './supabase';
 
 const KEY = 'lifeuk-v2';
+const PAID_KEY = 'lifeuk-paid';
 const LEGACY_KEY = 'lifeuk-trainer-v1';
 const IDS = QUESTIONS.map((q) => q.id);
 
 class AppStore {
 	progress = $state<Progress>(empty());
-	user = $state<{ id: string } | null>(null);
+	user = $state<{ id: string; email: string | null } | null>(null);
+	/** One-off unlock. Source of truth is Supabase `entitlements`; cached here so the app works offline. */
+	paid = $state(false);
 	sync = $state<'local' | 'syncing' | 'synced' | 'offline'>('local');
 	storageOk = $state(true);
 	private timer: ReturnType<typeof setTimeout> | null = null;
@@ -24,12 +27,15 @@ class AppStore {
 			try { const raw = localStorage.getItem(key); const p = raw ? parse(JSON.parse(raw), IDS, Date.now()) : null; if (p) { this.progress = p; break; } } catch { /* unreadable copy: start fresh */ }
 		}
 		if (this.exam && this.exam < Date.now() - 86_400_000) { this.progress.exam = undefined; }
+		try { this.paid = localStorage.getItem(PAID_KEY) === '1'; } catch { /* fine */ }
 		if (supabaseEnabled) this.initAuth();
 	}
 
 	item(id: string): ItemState { return this.progress.items[id] ?? fresh(); }
 	get exam() { return examMs(this.progress); }
 	get cloud() { return supabaseEnabled; }
+	get answered() { let n = 0; for (const s of Object.values(this.progress.items)) if (s.seen > 0) n++; return n; }
+	get gate() { return { answered: this.answered, mocks: this.progress.mocks.length, paid: this.paid }; }
 
 	// ---------- mutations ----------
 	answer(id: string, correct: boolean, now = Date.now()) {
@@ -71,13 +77,13 @@ class AppStore {
 	// ---------- auth + sync ----------
 	private async initAuth() {
 		const { data } = await supabase!.auth.getSession();
-		this.user = data.session ? { id: data.session.user.id } : null;
-		if (this.user) this.pull();
+		this.user = data.session ? { id: data.session.user.id, email: data.session.user.email ?? null } : null;
+		if (this.user) { this.pull(); this.checkPaid(); }
 		supabase!.auth.onAuthStateChange((_e, session) => {
-			const next = session ? { id: session.user.id } : null;
+			const next = session ? { id: session.user.id, email: session.user.email ?? null } : null;
 			const signedIn = !!next && !this.user;
 			this.user = next;
-			if (signedIn) this.pull();
+			if (signedIn) { this.pull(); this.checkPaid(); }
 			if (!next) this.sync = 'local';
 		});
 	}
@@ -86,7 +92,25 @@ class AppStore {
 		const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
 		return error ? error.message : null;
 	}
-	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; }
+	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; this.setPaid(false); }
+	private setPaid(v: boolean) { this.paid = v; try { if (v) localStorage.setItem(PAID_KEY, '1'); else localStorage.removeItem(PAID_KEY); } catch { /* fine */ } }
+	/** Re-read the entitlement for the signed-in email. Returns the new value; null when offline. */
+	async checkPaid(): Promise<boolean | null> {
+		if (!this.user) return null;
+		try {
+			const { data, error } = await supabase!.from('entitlements').select('email').limit(1);
+			if (error) throw error;
+			const v = (data?.length ?? 0) > 0; this.setPaid(v); return v;
+		} catch { return null; }
+	}
+	/** After Stripe redirects back: the webhook can lag a few seconds, so poll. */
+	async claim(tries = 8): Promise<boolean> {
+		for (let i = 0; i < tries; i++) {
+			if (await this.checkPaid()) return true;
+			await new Promise((r) => setTimeout(r, 2000));
+		}
+		return this.paid;
+	}
 	/** Local progress belongs to the last account that synced it; a different account starts from the server copy, never a merge. */
 	private owner(): string | null { try { return localStorage.getItem(KEY + ':owner'); } catch { return null; } }
 	private setOwner(id: string) { try { localStorage.setItem(KEY + ':owner', id); } catch { /* private mode */ } }
@@ -118,7 +142,7 @@ class AppStore {
 	async deleteEverything() {
 		this.cancelPush();
 		if (this.user) { try { await supabase!.from('progress').delete().eq('user_id', this.user.id); } catch { /* best effort */ } await this.signOut(); }
-		this.progress = empty();
+		this.progress = empty(); this.setPaid(false);
 		if (browser) { localStorage.removeItem(KEY); localStorage.removeItem(LEGACY_KEY); }
 	}
 }

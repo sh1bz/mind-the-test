@@ -246,3 +246,9 @@ button.qrow:active { background: var(--soft); }
 
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.onb .lock { width: 64px; height: 64px; border-radius: 15px; background: var(--blue); display: grid; place-items: center; align-self: center; margin-top: 6px; }
+.onb .lock.ok { background: var(--ok); }
+.onb .lock svg { width: 34px; height: 34px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.onb .price { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; text-align: center; margin: 0; line-height: 1.1; }
+.onb .price small { display: block; font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+.onb .fine { font-size: 12px; color: var(--muted); text-align: center; margin: -6px 0 0; }

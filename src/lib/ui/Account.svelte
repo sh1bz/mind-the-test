@@ -19,13 +19,13 @@
 	function exportAll() {
 		const a = document.createElement('a');
 		a.href = URL.createObjectURL(new Blob([app.exportBlob()], { type: 'application/json' }));
-		a.download = `mind-the-test-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+		a.download = `until-it-sticks-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
 	}
 	async function importFile() { const f = file.files?.[0]; if (!f) return; importMsg = app.importBlob(await f.text()) ? 'Imported and merged.' : 'That file is not a progress export.'; file.value = ''; }
 	const syncWord = $derived(app.user ? app.sync : 'local');
 </script>
 
-<div class="datehd">Mind the Test</div>
+<div class="datehd">Until It Sticks</div>
 <h1 class="large">Account</h1>
 
 {#if app.user}

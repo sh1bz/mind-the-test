@@ -20,7 +20,7 @@
 	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
 </script>
 
-<svelte:head><title>Mind the Test</title></svelte:head>
+<svelte:head><title>Until It Sticks</title></svelte:head>
 
 <main class="col" class:full>
 	{#if !welcomed}

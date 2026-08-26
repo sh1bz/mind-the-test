@@ -12,9 +12,9 @@
 	const mins = $derived(Math.max(1, Math.round((perDay * 40) / 60)));
 </script>
 
-<div class="brand" style="margin-top:8px"><div class="ring lg" aria-hidden="true"></div><span class="display" style="font-size:22px">Mind the Test</span></div>
-<h1 class="display" style="font-size:26px;line-height:1.1">When is your test?</h1>
-<p class="muted" style="font-size:13.5px">The plan is built around the date: how many new questions a day, and when each one comes back.</p>
+<div class="brand" style="margin-top:8px"><div class="ring lg" aria-hidden="true"></div><span style="font-size:17px;font-weight:600">Mind the Test</span></div>
+<h1 class="large">When is your test?</h1>
+<p class="muted" style="font-size:15px">The plan is built around the date: how many new questions a day, and when each one comes back.</p>
 <div class="card" style="display:flex;flex-direction:column;gap:8px">
 	<Calendar value={app.progress.exam} onpick={(iso) => app.setExam(iso)} />
 </div>
@@ -25,6 +25,6 @@
 		No date yet: <b>20 new a day</b>, about 15 minutes. You can set the date later in Account.
 	{/if}
 </div>
-<button class="big blue" type="button" onclick={() => { ondone(); nav.startMock(true); }}>Find out where I stand <span><small>24 questions · about 10 min</small></span><span class="arrow">›</span></button>
+<button class="big" type="button" onclick={() => { ondone(); nav.startMock(true); }}><span>Find out where I stand<small>24 questions · about 10 min</small></span><span class="arrow">›</span></button>
 <button class="big ghost" type="button" onclick={() => { ondone(); nav.home(); }}>Skip, start learning</button>
-<p class="muted" style="font-size:12px;margin-top:auto">No account needed. Progress stays on this device until you sign in.</p>
+<p class="muted" style="font-size:13px;margin-top:auto">No account needed. Progress stays on this device until you sign in.</p>

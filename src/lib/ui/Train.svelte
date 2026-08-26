@@ -106,18 +106,18 @@
 <svelte:window onkeydown={key} />
 
 {#if q}
-	<div class="row">
-		<button class="chip" type="button" aria-label="End session" onclick={finish}>✕</button>
+	<div class="navrow">
+		<button class="xbtn" type="button" aria-label="End session" onclick={finish}>✕</button>
 		<span class="pbar"><div style="width:{pctDone}%"></div></span>
 		<span class="muted num small">{done} done · {streak} streak</span>
 	</div>
 	<div class="row">
-		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff;border-color:var(--{TOPIC_COLORS[q.t]})"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
+		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
 		<button class="chip" class:on={flagged} type="button" aria-pressed={flagged} onclick={() => app.toggleFlag(q!.id)}>{flagged ? 'Flagged' : 'Flag'} <span class="key">F</span></button>
 	</div>
 	<p class="qtext">{q.q}</p>
 	{#if multi}<p class="muted small" style="margin-top:-6px">Select {q.c.length} answers</p>{/if}
-	<div style="display:flex;flex-direction:column;gap:8px">
+	<div class="opts">
 		{#each order as oi, i (oi)}
 			<button class="opt {cls(i)}" type="button" disabled={graded} aria-pressed={picked.includes(i)} onclick={() => pick(i)}>
 				<span class="k">{'ABCD'[i]}</span><span style="flex:1">{q.o[oi]}</span><span class="key">{i + 1}</span>
@@ -144,7 +144,7 @@
 		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={grade}>Check <span class="key">↵</span></button>
 	{/if}
 {:else}
-	<p class="muted">Nothing to train here.</p>
+	<h1 class="large">Nothing to train here.</h1><p class="muted">Every question in this set is known or not due yet.</p>
 	<button class="big ghost" type="button" onclick={() => nav.home()}>Back to Today</button>
 {/if}
 

@@ -9,9 +9,9 @@
 	const stripHead = (h: string) => h.replace(/<[^>]+>/g, '');
 </script>
 
-<div class="mapcard" style="border-top-color:{color}">
+<div class="mapcard">
 	<h3>
-		<span>{card.title}</span>
+		<span style="display:flex;align-items:center;flex:1"><span class="dot" style="background:{color}"></span>{card.title}</span>
 		{#if mastery && mastery.total}
 			<span class="mastery" title="{mastery.known} of {mastery.total} linked questions known"><i><b style="width:{Math.round((100 * mastery.known) / mastery.total)}%"></b></i>{mastery.known}/{mastery.total}</span>
 		{/if}
@@ -30,7 +30,7 @@
 	{#each card.cues as cue, i (i)}<div class="cue">{@html cue}</div>{/each}
 	{#if onquiz && mastery && mastery.total}
 		<div class="row" style="margin-top:10px">
-			<button class="chip" type="button" onclick={onquiz}>Quiz this card · {mastery.total}</button>
+			<button class="chip tint" type="button" onclick={onquiz}>Quiz this card · {mastery.total}</button>
 			{#if due}<span class="muted small num">{due} due now</span>{/if}
 		</div>
 	{/if}

@@ -14,7 +14,7 @@
 </script>
 
 <div class="row">
-	<span class="display" style="font-size:16px">{monthName(m)} {y}</span>
+	<span style="font-size:17px;font-weight:600">{monthName(m)} {y}</span>
 	<span style="display:flex;gap:6px">
 		<button class="navbtn" type="button" aria-label="Previous month" onclick={() => shift(-1)}>‹</button>
 		<button class="navbtn" type="button" aria-label="Next month" onclick={() => shift(1)}>›</button>

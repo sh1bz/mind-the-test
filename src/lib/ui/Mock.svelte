@@ -65,28 +65,28 @@
 		<div class="score num">{result.score}<span class="muted" style="font-size:22px">/{EXAM_QUESTIONS}</span></div>
 		<div class="verdictline num">{Math.round((100 * result.score) / EXAM_QUESTIONS)}% · {Math.max(1, Math.round(result.secs / 60))} min</div>
 	</div>
-	<p class="muted small">{pass ? `Pass mark is ${EXAM_PASS}. Keep the reviews going so it holds on the day.` : `Pass mark is ${EXAM_PASS}. Every wrong answer is now scheduled to come back.`}</p>
+	<p class="muted" style="font-size:15px">{pass ? `Pass mark is ${EXAM_PASS}. Keep the reviews going so it holds on the day.` : `Pass mark is ${EXAM_PASS}. Every wrong answer is now scheduled to come back.`}</p>
 	<div class="topicrow">{#each result.byTopic as t (t.name)}<span>{t.name}</span><b class="num">{t.ok}/{t.n}</b>{/each}</div>
 	{#if result.wrong.length}
 		<button class="big alt" type="button" onclick={() => { ondone?.(); nav.startTrain({ kind: 'custom', topic: null, ids: result!.wrong, title: 'Missed in the mock' }); }}>Review the {result.wrong.length} you missed <span class="arrow">›</span></button>
 	{/if}
 	<button class="big" type="button" onclick={leave}>{nav.placement ? 'Start learning' : 'Back to Today'} <span class="arrow">›</span></button>
 {:else if leaving}
-	<h2 class="display" style="font-size:22px;margin-top:8px">Leave the mock?</h2>
+	<h1 class="large" style="margin-top:8px">Leave the mock?</h1>
 	<p class="muted small">{unanswered} unanswered. Finishing now marks them wrong.</p>
 	<button class="big" type="button" onclick={finish}>Finish now</button>
 	<button class="big ghost" type="button" onclick={discard}>Discard</button>
 	<button class="big alt" type="button" onclick={() => (leaving = false)}>Keep going</button>
 {:else}
-	<div class="row">
-		<span class="timer num" class:low={secs <= 300}>{fmtSecs(Math.max(0, secs))}</span>
+	<div class="navrow">
+		<button class="xbtn" type="button" aria-label="Leave the mock" onclick={() => (leaving = true)}>✕</button>
 		<span class="muted num">{i + 1} of {qs.length}</span>
-		<button class="chip" type="button" aria-label="Leave the mock" onclick={() => (leaving = true)}>✕</button>
+		<span class="timer num" class:low={secs <= 300}>{fmtSecs(Math.max(0, secs))}</span>
 	</div>
 	<div class="row"><span class="pbar"><div style="width:{Math.round((100 * (i + 1)) / qs.length)}%;background:var(--blue)"></div></span></div>
 	<p class="qtext">{cur.q.q}</p>
 	{#if cur.q.c.length > 1}<p class="muted small" style="margin-top:-6px">Select {cur.q.c.length} answers</p>{/if}
-	<div style="display:flex;flex-direction:column;gap:8px">
+	<div class="opts">
 		{#each cur.order as oi, k (oi)}
 			<button class="opt" class:sel={answers[i].includes(k)} type="button" aria-pressed={answers[i].includes(k)} onclick={() => pick(k)}>
 				<span class="k">{'ABCD'[k]}</span><span style="flex:1">{cur.q.o[oi]}</span><span class="key">{k + 1}</span>
@@ -97,7 +97,7 @@
 		<button class="chip" type="button" disabled={i === 0} onclick={() => i--}>‹ Back</button>
 		<span class="muted small num">{unanswered} unanswered</span>
 		{#if i < qs.length - 1}
-			<button class="chip on" type="button" onclick={() => i++}>Next ›</button>
+			<button class="chip tint" type="button" onclick={() => i++}>Next ›</button>
 		{:else}
 			<button class="chip on" type="button" onclick={() => (unanswered ? (leaving = true) : finish())}>Finish</button>
 		{/if}

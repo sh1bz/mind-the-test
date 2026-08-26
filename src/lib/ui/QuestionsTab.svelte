@@ -23,39 +23,37 @@
 	$effect(() => { f; topic; search; shown = 60; });
 </script>
 
+<div class="datehd">{QUESTIONS.length} in the bank</div>
+<h1 class="large">Questions</h1>
+<input class="field search" type="search" placeholder="Search" aria-label="Search questions" bind:value={search} />
 <div class="wrapchips">{#each filters as x (x.id)}<button class="chip" class:on={f === x.id} type="button" aria-pressed={f === x.id} onclick={() => (f = x.id)}>{x.label}</button>{/each}</div>
 <div class="wrapchips">
 	<button class="chip" class:on={topic === null} type="button" onclick={() => (topic = null)}>All topics</button>
-	{#each TOPICS as name, t (t)}<button class="chip" class:on={topic === t} type="button" aria-pressed={topic === t} onclick={() => (topic = topic === t ? null : t)}><span class="dot" style="background:var(--{TOPIC_COLORS[t]})"></span>{name}</button>{/each}
+	{#each TOPICS as name, t (t)}<button class="chip" class:on={topic === t} type="button" aria-pressed={topic === t} onclick={() => (topic = topic === t ? null : t)}><span class="dot" style="background:{topic === t ? '#fff' : `var(--${TOPIC_COLORS[t]})`}"></span>{name}</button>{/each}
 </div>
-<input class="field" type="search" placeholder="Search questions" aria-label="Search questions" bind:value={search} style="min-height:40px;padding:9px 12px" />
-<p class="muted small num">{list.length} question{list.length === 1 ? '' : 's'} — {counts.known} known · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</p>
+<div class="sec"><h2 class="num">{list.length} question{list.length === 1 ? '' : 's'}</h2><span class="muted small num">{counts.known} known · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</span></div>
 {#if list.length}
 	<button class="big" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: null, ids: list.map((q) => q.id), title: `Test ${list.length}` })}>Test these {list.length} <span class="arrow">›</span></button>
 {/if}
-<div>
+<div class="list">
 	{#each list.slice(0, shown) as q (q.id)}
 		{@const s = st(q.id)}
 		{@const b = dueBadge(s, now)}
-		<div class="witem">
-		<button class="wrow" type="button" aria-expanded={open === q.id} onclick={() => (open = open === q.id ? null : q.id)}>
-			<span class="tdot" style="background:var(--{TOPIC_COLORS[q.t]})"></span>
-			<span style="flex:1"><b>{q.q}</b>{#if !isNew(s) || open === q.id}<span class="muted">{correctText(q)}</span>{/if}
-				{#if open === q.id}
-					<span class="muted" style="display:block;margin-top:6px;font-size:12.5px">{q.e}</span>
-					{#if topMiss(s) !== undefined}<span class="muted" style="display:block;margin-top:4px;font-size:12.5px">Often mixed up with “{q.o[topMiss(s)!]}”</span>{/if}
-				{/if}
-			</span>
-			{#if s.lapses}<span class="zb w">✕{s.lapses}</span>{/if}
-			<span class="zb {b.cls}">{b.text}</span>
+		<button class="qrow" type="button" aria-expanded={open === q.id} onclick={() => (open = open === q.id ? null : q.id)}>
+			<span class="t">{q.q}</span>
+			{#if !isNew(s) || open === q.id}<span class="muted" style="font-size:14px">{correctText(q)}</span>{/if}
+			<span class="m"><span class="dot" style="background:var(--{TOPIC_COLORS[q.t]})"></span>{TOPICS[q.t]}{#if s.flag}<span>· flagged</span>{/if}{#if s.lapses}<span class="zb w" style="margin-left:0">✕{s.lapses}</span>{/if}<span class="zb {b.cls}">{b.text}</span></span>
+			{#if open === q.id}
+				<span class="x">{q.e}</span>
+				{#if topMiss(s) !== undefined}<span class="x muted">Often mixed up with “{q.o[topMiss(s)!]}”</span>{/if}
+			{/if}
 		</button>
 		{#if open === q.id}
 			<div class="wrapchips wacts">
 				<button class="chip" class:on={!!s.flag} type="button" aria-pressed={!!s.flag} onclick={() => app.toggleFlag(q.id)}>{s.flag ? 'Flagged' : 'Flag'}</button>
-				{#if q.card && CARD_BY_ID[q.card]}<button class="chip" type="button" onclick={() => nav.openMap(CARD_BY_ID[q.card!].section.id)}>On the map</button>{/if}
+				{#if q.card && CARD_BY_ID[q.card]}<button class="chip tint" type="button" onclick={() => nav.openMap(CARD_BY_ID[q.card!].section.id)}>On the map</button>{/if}
 			</div>
 		{/if}
-		</div>
 	{/each}
-	{#if list.length > shown}<button class="chip" type="button" style="margin-top:10px" onclick={() => (shown += 60)}>Show more · {list.length - shown} left</button>{/if}
 </div>
+{#if list.length > shown}<button class="chip tint" type="button" style="align-self:center" onclick={() => (shown += 60)}>Show more · {list.length - shown} left</button>{/if}

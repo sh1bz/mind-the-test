@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { nav, type Tab } from '$lib/ui/nav.svelte';
+	import { ICONS } from './icons';
 	const items: { id: Tab; label: string; svg: string }[] = [
-		{ id: 'today', label: 'Today', svg: '<circle cx="12" cy="12" r="8"/><path d="M2 12h20"/>' },
-		{ id: 'map', label: 'Map', svg: '<path d="M4 18 10 6l4 12 6-12"/>' },
-		{ id: 'questions', label: 'Questions', svg: '<path d="M5 6h14M5 12h14M5 18h9"/>' },
-		{ id: 'account', label: 'Account', svg: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>' }
+		{ id: 'today', label: 'Today', svg: ICONS.house },
+		{ id: 'map', label: 'Map', svg: ICONS.map },
+		{ id: 'questions', label: 'Questions', svg: ICONS.list },
+		{ id: 'account', label: 'Account', svg: ICONS.person }
 	];
 </script>
 

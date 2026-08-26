@@ -4,6 +4,7 @@
 	import { QUESTIONS } from '$lib/content';
 	import { isNew, isDue } from '$lib/engine/scheduler';
 	import { milestones, fmtIn, pct } from '$lib/ui/derive';
+	import Ic from './Ic.svelte';
 	const now = Date.now();
 	const s = nav.summary!;
 	const st = (id: string) => app.item(id);
@@ -14,19 +15,26 @@
 	const headline = s.firstTry >= 0.8 ? 'Good run.' : s.firstTry >= 0.5 ? 'Solid work.' : 'Hard ones today.';
 </script>
 
-<h1 class="display" style="font-size:26px;line-height:1.1;margin-top:8px">{headline}</h1>
-<div class="row" style="justify-content:flex-start;gap:22px">
-	<div><span class="display num" style="font-size:30px">{s.answered}</span><br /><span class="muted small">answered</span></div>
-	<div><span class="display num" style="font-size:30px">{pct(s.firstTry)}</span><br /><span class="muted small">first try</span></div>
-	<div><span class="display num" style="font-size:30px">{s.best}</span><br /><span class="muted small">best streak</span></div>
+<div class="datehd">Session done</div>
+<h1 class="large">{headline}</h1>
+<div class="card">
+	<div class="stats" style="grid-template-columns:1fr 1fr 1fr">
+		<div><b class="num" style="font-size:28px">{s.answered}</b>answered</div>
+		<div><b class="num" style="font-size:28px">{pct(s.firstTry)}</b>first try</div>
+		<div><b class="num" style="font-size:28px">{s.best}</b>best streak</div>
+	</div>
 </div>
-<div class="row" style="font-size:13px"><span>Pass chance</span><b class="num">{pct(s.before)} → {pct(s.after)}</b></div>
-<div class="row" style="font-size:13px"><span>Next reviews due</span><b class="num">{nextDue === Infinity ? '—' : `in ${fmtIn(nextDue - now)}`}{tonight ? ` · ${tonight} today` : ''}</b></div>
-<div class="eyebrow" style="margin-top:6px">Milestones</div>
-<div class="journey">
-	{#each stops as m (m.id)}
-		<div class="st {m.state}"><span>{#if m.state === 'next' || m.id === 'exam'}<b>{m.label}</b>{:else}{m.label}{/if}</span><span class="muted num">{m.state === 'next' ? 'next' : (m.when ?? '—')}</span></div>
-	{/each}
+<div class="list">
+	<div class="lrow ic-sep"><Ic name="heart" color="var(--red)" />Pass chance<span class="v ink num">{pct(s.before)} → {pct(s.after)}</span></div>
+	<div class="lrow"><Ic name="clock" color="var(--indigo)" />Next reviews due<span class="v num">{nextDue === Infinity ? '—' : `in ${fmtIn(nextDue - now)}`}{tonight ? ` · ${tonight} today` : ''}</span></div>
+</div>
+<div class="sec"><h2>Milestones</h2></div>
+<div class="card">
+	<div class="journey">
+		{#each stops as m (m.id)}
+			<div class="st {m.state}"><span>{#if m.state === 'next' || m.id === 'exam'}<b>{m.label}</b>{:else}{m.label}{/if}</span><span class="muted num">{m.state === 'next' ? 'next' : (m.when ?? '—')}</span></div>
+		{/each}
+	</div>
 </div>
 <button class="big" type="button" style="margin-top:auto" onclick={() => nav.startTrain(nav.train)}>Keep going <span class="arrow">›</span></button>
 <button class="big ghost" type="button" onclick={() => nav.home()}>Back to Today</button>

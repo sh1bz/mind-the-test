@@ -5,6 +5,7 @@
 	import { QUESTIONS, TOPICS, type Question } from '$lib/content';
 	import { pickMock, EXAM_PASS, EXAM_MINUTES, EXAM_QUESTIONS } from '$lib/engine/readiness';
 	import { optionOrder, fmtSecs, stampMilestones } from '$lib/ui/derive';
+	import Sheet from './Sheet.svelte';
 	let { ondone }: { ondone?: () => void } = $props();
 	const st = (id: string) => app.item(id);
 	const startAt = Date.now();
@@ -71,13 +72,14 @@
 		<button class="big alt" type="button" onclick={() => { ondone?.(); nav.startTrain({ kind: 'custom', topic: null, ids: result!.wrong, title: 'Missed in the mock' }); }}>Review the {result.wrong.length} you missed <span class="arrow">›</span></button>
 	{/if}
 	<button class="big" type="button" onclick={leave}>{nav.placement ? 'Start learning' : 'Back to Today'} <span class="arrow">›</span></button>
-{:else if leaving}
-	<h1 class="large" style="margin-top:8px">Leave the mock?</h1>
-	<p class="muted small">{unanswered} unanswered. Finishing now marks them wrong.</p>
-	<button class="big" type="button" onclick={finish}>Finish now</button>
-	<button class="big ghost" type="button" onclick={discard}>Discard</button>
-	<button class="big alt" type="button" onclick={() => (leaving = false)}>Keep going</button>
 {:else}
+	{#if leaving}
+		<Sheet label="Leave the mock?" close="Keep going" onclose={() => (leaving = false)}>
+			<div class="note">{unanswered} unanswered. Finishing now marks them wrong.</div>
+			<button class="big" type="button" onclick={finish}>Finish now</button>
+			<button class="big ghost" type="button" onclick={discard}>Discard</button>
+		</Sheet>
+	{/if}
 	<div class="navrow">
 		<button class="xbtn" type="button" aria-label="Leave the mock" onclick={() => (leaving = true)}>✕</button>
 		<span class="muted num">{i + 1} of {qs.length}</span>

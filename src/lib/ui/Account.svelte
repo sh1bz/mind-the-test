@@ -3,6 +3,7 @@
 	import { fmtLong } from '$lib/ui/derive';
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
+	import Sheet from './Sheet.svelte';
 	let email = $state('');
 	let sent = $state(false);
 	let err = $state<string | null>(null);
@@ -69,16 +70,20 @@
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={exportAll}><Ic name="download" color="var(--green)" />Export progress<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => file.click()}><Ic name="upload" color="var(--teal)" />Import a file<span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => (confirm = confirm === 'reset' ? null : 'reset')}><Ic name="review" color="var(--orange)" />Reset progress<span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => (confirm = confirm === 'delete' ? null : 'delete')}><Ic name="trash" color="var(--red)" /><span style="color:var(--red)">Delete my data</span><span class="v">{app.user ? 'server and this device' : 'this device'}</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'reset')}><Ic name="review" color="var(--orange)" />Reset progress<span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'delete')}><Ic name="trash" color="var(--red)" /><span style="color:var(--red)">Delete my data</span><span class="v">{app.user ? 'server and this device' : 'this device'}</span></button>
 </div>
 <input type="file" accept="application/json,.json" bind:this={file} onchange={importFile} class="sr" aria-label="Import a progress file" />
 {#if importMsg}<p class="muted small" style="padding:0 4px">{importMsg}</p>{/if}
 {#if confirm === 'reset'}
-	<div class="note">Start again from zero? Your test date stays.</div>
-	<div class="row"><button class="chip danger" type="button" onclick={async () => { const exam = app.progress.exam; await app.reset(); app.setExam(exam); confirm = null; }}>Yes, reset</button><button class="chip" type="button" onclick={() => (confirm = null)}>Cancel</button></div>
+	<Sheet label="Reset progress" close="Cancel" onclose={() => (confirm = null)}>
+		<div class="note">Start again from zero? Your test date stays.</div>
+		<div class="row"><button class="chip danger" type="button" onclick={async () => { const exam = app.progress.exam; await app.reset(); app.setExam(exam); confirm = null; }}>Yes, reset</button></div>
+	</Sheet>
 {/if}
 {#if confirm === 'delete'}
-	<div class="note">{app.user ? 'Removes your progress from the server, signs you out, and clears this device.' : 'Clears all progress on this device.'}</div>
-	<div class="row"><button class="chip danger" type="button" onclick={async () => { await app.deleteEverything(); confirm = null; }}>Yes, delete everything</button><button class="chip" type="button" onclick={() => (confirm = null)}>Cancel</button></div>
+	<Sheet label="Delete my data" close="Cancel" onclose={() => (confirm = null)}>
+		<div class="note">{app.user ? 'Removes your progress from the server, signs you out, and clears this device.' : 'Clears all progress on this device.'}</div>
+		<div class="row"><button class="chip danger" type="button" onclick={async () => { await app.deleteEverything(); confirm = null; }}>Yes, delete everything</button></div>
+	</Sheet>
 {/if}

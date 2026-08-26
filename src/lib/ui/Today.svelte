@@ -65,7 +65,7 @@
 {/if}
 <button class="big blue" type="button" onclick={() => nav.startMock(false)}>Mock exam <span><small>{EXAM_QUESTIONS} · {EXAM_MINUTES} min · pass {EXAM_PASS}</small></span><span class="arrow">›</span></button>
 
-<div class="eyebrow" style="margin-top:6px">Lines</div>
+<div class="eyebrow" style="margin-top:6px">Topics</div>
 <div>
 	{#each lines as l (l.t)}
 		<button class="line" class:on={nav.topic === l.t} type="button" aria-pressed={nav.topic === l.t} onclick={() => (nav.topic = nav.topic === l.t ? null : l.t)}>

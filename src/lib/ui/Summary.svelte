@@ -22,7 +22,7 @@
 </div>
 <div class="row" style="font-size:13px"><span>Pass chance</span><b class="num">{pct(s.before)} → {pct(s.after)}</b></div>
 <div class="row" style="font-size:13px"><span>Next reviews due</span><b class="num">{nextDue === Infinity ? '—' : `in ${fmtIn(nextDue - now)}`}{tonight ? ` · ${tonight} today` : ''}</b></div>
-<div class="eyebrow" style="margin-top:6px">Your line</div>
+<div class="eyebrow" style="margin-top:6px">Milestones</div>
 <div class="journey">
 	{#each stops as m (m.id)}
 		<div class="st {m.state}"><span>{#if m.state === 'next' || m.id === 'exam'}<b>{m.label}</b>{:else}{m.label}{/if}</span><span class="muted num">{m.state === 'next' ? 'next' : (m.when ?? '—')}</span></div>

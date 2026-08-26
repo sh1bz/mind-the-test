@@ -11,7 +11,7 @@ export type SessionCtx = {
 	state: (id: string) => ItemState;
 	now: () => number;
 	rand: () => number;
-	newPerRefill?: number;
+	newBudget?: number; // new questions allowed in this session (default: no cap)
 	topic?: (id: string) => number; // when given, consecutive cards avoid sharing a topic
 };
 
@@ -34,6 +34,7 @@ export const interleave = (ids: string[], topic?: (id: string) => number): strin
 export class Session {
 	queue: Card[] = [];
 	recent: string[] = [];
+	newServed = 0;
 	done = 0; firstTry = { ok: 0, n: 0 }; streak = 0; best = 0;
 	constructor(public mode: Mode, private ctx: SessionCtx, seed: string[] = []) {
 		if (mode === 'smart') this.refill(); else this.queue = interleave(shuffle(seed.slice(), ctx.rand), ctx.topic).map((id) => ({ id, attempted: false, needed: 1 }));
@@ -45,34 +46,44 @@ export class Session {
 		const { ids, state, now, rand } = this.ctx;
 		const t = now();
 		const avoid = new Set([...this.queue.map((c) => c.id), ...this.recent, ...(current ? [current] : [])]);
-		const cand = ids.filter((id) => !avoid.has(id) && !isKnown(state(id)));
+		const all = ids.filter((id) => !avoid.has(id));
+		const cand = all.filter((id) => !isKnown(state(id)));
 		const byDue = (a: string, b: string) => state(a).due - state(b).due;
-		const LIMIT = 15, NEW = this.ctx.newPerRefill ?? LIMIT;
-		let add = cand.filter((id) => { const s = state(id); return s.lapses > 0 && isDue(s, t); }).sort(byDue).slice(0, LIMIT);
+		const LIMIT = 15, NEW = Math.max(0, (this.ctx.newBudget ?? Infinity) - this.newServed);
+		let add = all.filter((id) => { const s = state(id); return s.lapses > 0 && isDue(s, t); }).sort(byDue).slice(0, LIMIT);
 		if (add.length < LIMIT) {
-			const clean = cand.filter((id) => { const s = state(id); return s.lapses === 0 && isDue(s, t); }).sort(byDue);
+			const clean = all.filter((id) => { const s = state(id); return s.lapses === 0 && isDue(s, t); }).sort(byDue);
 			add = add.concat(clean.slice(0, Math.min(4, LIMIT - add.length)));
 		}
 		if (add.length < LIMIT) {
 			const unseen = shuffle(cand.filter((id) => state(id).seen === 0), rand);
-			add = add.concat(unseen.slice(0, Math.min(NEW, LIMIT - add.length)));
+			const fresh = unseen.slice(0, Math.min(NEW, LIMIT - add.length)); this.newServed += fresh.length; add = add.concat(fresh);
 		}
 		if (add.length < LIMIT) {
-			const clean2 = cand.filter((id) => { const s = state(id); return s.lapses === 0 && isDue(s, t) && !add.includes(id); }).sort(byDue);
+			const clean2 = all.filter((id) => { const s = state(id); return s.lapses === 0 && isDue(s, t) && !add.includes(id); }).sort(byDue);
 			add = add.concat(clean2.slice(0, LIMIT - add.length));
 		}
+		// Nothing due and the new budget is spent: keep working the unproven seen items; new only if budget remains.
+		const pool = cand.filter((id) => state(id).seen > 0 || NEW > 0);
 		if (!add.length) {
-			let rest = cand.filter((id) => state(id).lapses > 0).sort((a, b) => (state(a).ivl - state(b).ivl) || (state(b).lapses - state(a).lapses));
-			if (!rest.length) rest = cand.sort((a, b) => (state(a).ivl - state(b).ivl) || byDue(a, b));
+			let rest = pool.filter((id) => state(id).lapses > 0).sort((a, b) => (state(a).ivl - state(b).ivl) || (state(b).lapses - state(a).lapses));
+			if (!rest.length) rest = pool.sort((a, b) => (state(a).ivl - state(b).ivl) || byDue(a, b));
 			add = rest.slice(0, LIMIT);
 		}
-		if (!add.length) add = ids.filter((id) => !avoid.has(id) && !isKnown(state(id))).slice(0, LIMIT);
+		if (!add.length) add = pool.slice(0, LIMIT);
 		this.queue.push(...interleave(shuffle(add, rand), this.ctx.topic).map((id) => ({ id, attempted: false, needed: 1 })));
 	}
 
 	next(): Card | null {
 		if (this.mode === 'smart' && this.queue.length < 3) this.refill();
 		return this.queue.shift() ?? null;
+	}
+
+	/** Re-asks still owed for cards missed this session (served after the goal so a miss is never left hanging). */
+	get pending() { return this.queue.filter((c) => c.attempted).length; }
+	nextPending(): Card | null {
+		const i = this.queue.findIndex((c) => c.attempted);
+		return i < 0 ? null : this.queue.splice(i, 1)[0];
 	}
 
 	private reinsert(card: Card, min: number, max: number) {

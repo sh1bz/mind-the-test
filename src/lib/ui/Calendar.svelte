@@ -20,7 +20,7 @@
 		<button class="navbtn" type="button" aria-label="Next month" onclick={() => shift(1)}>›</button>
 	</span>
 </div>
-<div class="cal" role="grid" aria-label="Pick a date">
+<div class="cal" aria-label="Pick a date">
 	{#each ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as h, i (i)}<span class="h" aria-hidden="true">{h}</span>{/each}
 	{#each Array(lead) as _, i (i)}<span></span>{/each}
 	{#each Array(days) as _, i (i)}

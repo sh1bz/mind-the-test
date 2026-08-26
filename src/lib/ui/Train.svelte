@@ -5,6 +5,7 @@
 	import { QUESTIONS, BY_ID, CARD_BY_ID, TOPICS, TOPIC_COLORS, type Question } from '$lib/content';
 	import { Session, shuffle, type Card } from '$lib/engine/session';
 	import { isDue, isNew, isWeak } from '$lib/engine/scheduler';
+	import { correctText } from '$lib/ui/derive';
 	import { plan, pool, ready, optionOrder, stampMilestones } from '$lib/ui/derive';
 	import Sheet from './Sheet.svelte';
 	import MapCardView from './MapCardView.svelte';
@@ -20,8 +21,8 @@
 	let session: Session; let goal: number;
 	if (spec.kind === 'smart') {
 		const p = plan(app.progress, st, now(), spec.topic);
-		goal = Math.min(40, Math.max(10, p.due + p.fresh));
-		session = new Session('smart', { ids, state: st, now, rand, topic, newPerRefill: Math.max(1, p.fresh) });
+		goal = Math.min(40, Math.max(1, p.due + p.fresh));
+		session = new Session('smart', { ids, state: st, now, rand, topic, newBudget: p.fresh });
 	} else {
 		let seed: string[] = [];
 		if (spec.kind === 'review') seed = ids.filter((id) => isDue(st(id), now())).sort((a, b) => st(a).due - st(b).due);
@@ -36,6 +37,7 @@
 	let q = $state<Question | null>(null);
 	let order = $state<number[]>([]);
 	let picked = $state<number[]>([]); // display indices
+	let mixup = $state<{ text: string; n: number } | null>(null); // a distractor picked before
 	let graded = $state(false);
 	let correct = $state(false);
 	let done = $state(0);
@@ -53,8 +55,8 @@
 	});
 
 	function load() {
-		const c = session.next();
-		if (!c || (spec.kind === 'smart' && done >= goal)) return finish();
+		const c = spec.kind === 'smart' && done >= goal ? session.nextPending() : session.next();
+		if (!c) { if (session.done === 0) { q = null; return; } return finish(); }
 		card = c; q = BY_ID[c.id]; order = optionOrder(q, rand); picked = []; graded = false;
 	}
 	function pick(i: number) {
@@ -70,7 +72,14 @@
 		const { schedule, recovered } = session.answer(card, correct);
 		if (schedule) app.answer(q.id, correct, now());
 		else if (recovered) app.relearn(q.id, now());
-		if (!correct) navigator.vibrate?.(60);
+		if (!correct) {
+			const wrong = picked.map((i) => order[i]).filter((i) => !q!.c.includes(i));
+			const before = st(q.id).miss ?? [];
+			const again = wrong.find((i) => (before[i] ?? 0) >= 1);
+			mixup = again === undefined ? null : { text: q.o[again], n: (before[again] ?? 0) + 1 };
+			app.recordMiss(q.id, wrong);
+			navigator.vibrate?.(60);
+		} else mixup = null;
 		graded = true; done = session.done; streak = session.streak;
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
@@ -117,7 +126,10 @@
 	</div>
 	<div aria-live="polite">
 		{#if graded}
-			<div class="verdict" class:good={correct}><b>{correct ? 'Correct' : 'Not quite'}</b>{q.e}</div>
+			<div class="verdict" class:good={correct}><b>{correct ? 'Correct' : 'Not quite'}</b>{q.e}
+				{#if mixup}<div class="mixup">You picked “{mixup.text}” again ({mixup.n} times). The right answer is: {correctText(q)}.</div>{/if}
+			</div>
+			{#if !correct && link?.card.cues[0]}<div class="cue">{@html link.card.cues[0]}</div>{/if}
 		{/if}
 	</div>
 	{#if graded && link && stopItem}
@@ -127,7 +139,7 @@
 		</button>
 	{/if}
 	{#if graded}
-		<button class="big" type="button" onclick={next}>Continue {#if !correct}<span><small>back in 8–12 cards</small></span>{/if}<span class="key">↵</span></button>
+		<button class="big {correct ? 'ok' : 'bad'}" type="button" onclick={next}>Continue {#if !correct}<span><small>back in 8–12 cards</small></span>{/if}<span class="key">↵</span></button>
 	{:else if multi}
 		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={grade}>Check <span class="key">↵</span></button>
 	{/if}

@@ -18,7 +18,7 @@
 	function exportAll() {
 		const a = document.createElement('a');
 		a.href = URL.createObjectURL(new Blob([app.exportBlob()], { type: 'application/json' }));
-		a.download = `mind-the-test-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(a.href);
+		a.download = `mind-the-test-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
 	}
 	async function importFile() { const f = file.files?.[0]; if (!f) return; importMsg = app.importBlob(await f.text()) ? 'Imported and merged.' : 'That file is not a progress export.'; file.value = ''; }
 	const syncWord = $derived(app.user ? app.sync : 'local');
@@ -66,8 +66,8 @@
 	<div class="row"><button class="chip danger" type="button" onclick={async () => { const exam = app.progress.exam; await app.reset(); app.setExam(exam); confirm = null; }}>Yes, reset</button><button class="chip" type="button" onclick={() => (confirm = null)}>Cancel</button></div>
 {/if}
 
-<div class="row" style="margin-top:auto"><button class="chip danger" type="button" onclick={() => (confirm = confirm === 'delete' ? null : 'delete')}>Delete my data</button><span class="muted small">server and this device</span></div>
+<div class="row" style="margin-top:auto"><button class="chip danger" type="button" onclick={() => (confirm = confirm === 'delete' ? null : 'delete')}>Delete my data</button><span class="muted small">{app.user ? 'server and this device' : 'this device'}</span></div>
 {#if confirm === 'delete'}
-	<div class="note">Removes your progress from the server{app.user ? ' and signs you out' : ''}, and clears this device.</div>
+	<div class="note">{app.user ? 'Removes your progress from the server, signs you out, and clears this device.' : 'Clears all progress on this device.'}</div>
 	<div class="row"><button class="chip danger" type="button" onclick={async () => { await app.deleteEverything(); confirm = null; }}>Yes, delete everything</button><button class="chip" type="button" onclick={() => (confirm = null)}>Cancel</button></div>
 {/if}

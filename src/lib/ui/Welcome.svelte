@@ -25,6 +25,6 @@
 		No date yet: <b>20 new a day</b>, about 15 minutes. You can set the date later in Account.
 	{/if}
 </div>
-<button class="big blue" type="button" onclick={() => { ondone(); nav.startMock(true); }}>Find out where I stand <span><small>24-question placement · 10 min</small></span><span class="arrow">›</span></button>
+<button class="big blue" type="button" onclick={() => { ondone(); nav.startMock(true); }}>Find out where I stand <span><small>24 questions · about 10 min</small></span><span class="arrow">›</span></button>
 <button class="big ghost" type="button" onclick={() => { ondone(); nav.home(); }}>Skip, start learning</button>
 <p class="muted" style="font-size:12px;margin-top:auto">No account needed. Progress stays on this device until you sign in.</p>

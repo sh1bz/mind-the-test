@@ -16,7 +16,8 @@
 	const seen = () => { try { return !!localStorage.getItem(WELCOMED); } catch { return true; } };
 	let welcomed = $state(!browser || seen() || !!app.progress.exam || Object.keys(app.progress.items).length > 0);
 	function done() { welcomed = true; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
-	const full = $derived(nav.screen === 'train' || nav.screen === 'mock');
+	const full = $derived(!welcomed || nav.screen === 'train' || nav.screen === 'mock');
+	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
 </script>
 
 <svelte:head><title>Mind the Test</title></svelte:head>

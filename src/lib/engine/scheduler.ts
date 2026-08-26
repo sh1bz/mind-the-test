@@ -10,7 +10,16 @@ export type ItemState = {
 	last: number; // ms timestamp of last answer (0 = never)
 	seen: number; // total answers
 	flag: 0 | 1;
+	miss?: number[]; // wrong picks per original option index (a repeat pick marks a confusion pair)
 };
+
+/** The distractor picked most often, when picked at least `min` times. */
+export function topMiss(s: ItemState, min = 2): number | undefined {
+	if (!s.miss) return undefined;
+	let best = -1, n = 0;
+	s.miss.forEach((c, i) => { if (c > n) { n = c; best = i; } });
+	return n >= min ? best : undefined;
+}
 
 export const DAY = 86_400_000;
 export const MIN_EASE = 1.3;

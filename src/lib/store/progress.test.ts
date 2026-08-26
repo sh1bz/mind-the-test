@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { merge, parse, empty, streakDays, dayKey } from './progress';
-import { fresh, grade } from '$lib/engine/scheduler';
+import { merge, parse, empty, streakDays, dayKey, type Progress } from './progress';
+import { fresh, grade, DAY } from '$lib/engine/scheduler';
 
 const T0 = Date.UTC(2026, 7, 26, 9);
 describe('progress', () => {
@@ -40,4 +40,34 @@ describe('progress regressions', () => {
 		const p = parse({ v: 2, items: { q001: { reps: 'x', ease: 99, ivl: -3, seen: 2, flag: 'y' } } }, [], T0)!;
 		expect(p.items.q001).toMatchObject({ reps: 0, ease: 3, ivl: 0, seen: 2, flag: 1 });
 	});
+});
+
+describe('miss counts', () => {
+	it('sanitize keeps a valid miss array and drops an empty one', async () => {
+		const { sanitize } = await import('./progress');
+		expect(sanitize({ miss: [0, 2, 0, 1] }).miss).toEqual([0, 2, 0, 1]);
+		expect(sanitize({ miss: [0, 0] }).miss).toBeUndefined();
+		expect(sanitize({ miss: 'x' }).miss).toBeUndefined();
+	});
+	it('merge takes the per-option max', async () => {
+		const { mergeMiss } = await import('./progress');
+		expect(mergeMiss([1, 0, 2], [0, 3])).toEqual([1, 3, 2]);
+		expect(mergeMiss(undefined, [1])).toEqual([1]);
+	});
+	it('topMiss needs at least two picks of the same distractor', async () => {
+		const { topMiss, fresh } = await import('$lib/engine/scheduler');
+		expect(topMiss({ ...fresh(), miss: [0, 1, 0] })).toBeUndefined();
+		expect(topMiss({ ...fresh(), miss: [0, 1, 2] })).toBe(2);
+	});
+});
+
+it('a reset on one device wins over older data from another', () => {
+	const t = 1_700_000_000_000;
+	const old: Progress = { ...empty(), items: { a: { ...fresh(), seen: 3, last: t - 1000, reps: 2, ivl: 3, due: t } }, mocks: [{ at: t - 500, score: 20, total: 24, secs: 100, wrong: [] }], days: { [dayKey(t - 1000)]: { n: 3, ok: 2 } }, ms: { first: t - 900 }, updatedAt: t - 1000 };
+	const wiped: Progress = { ...empty(), resetAt: t, updatedAt: t };
+	for (const m of [merge(old, wiped), merge(wiped, old)]) {
+		expect(Object.keys(m.items)).toEqual([]); expect(m.mocks).toEqual([]); expect(m.ms).toEqual({}); expect(m.resetAt).toBe(t);
+	}
+	const after: Progress = { ...empty(), items: { b: { ...fresh(), seen: 1, last: t + 10, reps: 1, ivl: 1, due: t + DAY } }, updatedAt: t + 10 };
+	expect(Object.keys(merge(wiped, after).items)).toEqual(['b']);
 });

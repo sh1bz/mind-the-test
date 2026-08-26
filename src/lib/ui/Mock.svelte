@@ -18,7 +18,7 @@
 	const cur = $derived(qs[i]);
 	const unanswered = $derived(answers.filter((a, k) => a.length < qs[k].q.c.length).length);
 	let timer: ReturnType<typeof setInterval>;
-	onMount(() => { timer = setInterval(() => { secs--; if (secs === 300) announce = '5 minutes left'; if (secs === 60) announce = '1 minute left'; if (secs <= 0) finish(); }, 1000); return () => clearInterval(timer); });
+	onMount(() => { timer = setInterval(() => { secs = Math.max(0, EXAM_MINUTES * 60 - Math.floor((Date.now() - startAt) / 1000)); if (secs === 300) announce = '5 minutes left'; if (secs === 60) announce = '1 minute left'; if (secs <= 0) finish(); }, 1000); return () => clearInterval(timer); });
 
 	function pick(k: number) {
 		const a = answers[i]; const need = cur.q.c.length;
@@ -37,6 +37,7 @@
 			if (ok) score++; else wrong.push(q.id);
 			byTopic[q.t].n++; if (ok) byTopic[q.t].ok++;
 			app.answer(q.id, ok, Date.now());
+			if (!ok) app.recordMiss(q.id, answers[k].map((d) => order[d]).filter((i) => !q.c.includes(i)));
 		});
 		app.addMock({ at: Date.now(), score, total: EXAM_QUESTIONS, secs: took, wrong });
 		stampMilestones(app.progress, st, Date.now()); app.persist();
@@ -46,6 +47,7 @@
 	function leave() { ondone?.(); nav.home(); }
 	function key(e: KeyboardEvent) {
 		if (result || leaving) return;
+		if ((e.target as HTMLElement | null)?.closest?.('button, input, a') && e.key !== '1' && e.key !== '2' && e.key !== '3' && e.key !== '4') return;
 		if (e.key >= '1' && e.key <= '4') pick(Number(e.key) - 1);
 		else if (e.key === 'Enter' || e.key === 'ArrowRight') { if (i < qs.length - 1) i++; }
 		else if (e.key === 'ArrowLeft') { if (i > 0) i--; }

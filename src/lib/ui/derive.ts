@@ -29,7 +29,9 @@ export function topicStats(state: StateOf) {
 export const known = (state: StateOf) => QUESTIONS.filter((q) => isKnown(state(q.id))).length;
 export const ready = (state: StateOf, now: number) => readiness(QUESTIONS.map((q) => state(q.id)), now);
 
-export const daysLeft = (exam: number | undefined, now: number) => (exam ? Math.ceil((exam - now) / DAY) : undefined);
+const midnight = (t: number) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+// Whole calendar days until the exam (today = 0), so the count does not change at 9am.
+export const daysLeft = (exam: number | undefined, now: number) => (exam ? Math.round((midnight(exam) - midnight(now)) / DAY) : undefined);
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const monthName = (m: number) => MONTHS[m];

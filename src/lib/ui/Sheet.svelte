@@ -2,12 +2,15 @@
 	import type { Snippet } from 'svelte';
 	let { onclose, children, label = 'Details' }: { onclose: () => void; children: Snippet; label?: string } = $props();
 	function key(e: KeyboardEvent) { if (e.key === 'Escape') { e.stopPropagation(); onclose(); } }
+	let closeBtn = $state<HTMLButtonElement>();
+	// Move focus into the dialog, and back to the opener when it closes.
+	$effect(() => { const prev = document.activeElement as HTMLElement | null; closeBtn?.focus(); return () => prev?.focus?.(); });
 </script>
 
 <svelte:window onkeydown={key} />
 <div class="sheet-back" role="presentation" onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}>
 	<div class="sheet" role="dialog" aria-modal="true" aria-label={label}>
-		<div class="row"><span class="eyebrow">{label}</span><button class="chip" type="button" onclick={onclose}>Close</button></div>
+		<div class="row"><span class="eyebrow">{label}</span><button class="chip" type="button" bind:this={closeBtn} onclick={onclose}>Close</button></div>
 		{@render children()}
 	</div>
 </div>

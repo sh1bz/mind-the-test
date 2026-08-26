@@ -2,7 +2,7 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { QUESTIONS, TOPICS, TOPIC_COLORS, CARD_BY_ID } from '$lib/content';
-	import { isKnown, isNew } from '$lib/engine/scheduler';
+	import { isKnown, isNew, topMiss } from '$lib/engine/scheduler';
 	import { dueBadge, correctText } from '$lib/ui/derive';
 	const now = Date.now();
 	const st = (id: string) => app.item(id);
@@ -37,24 +37,25 @@
 	{#each list.slice(0, shown) as q (q.id)}
 		{@const s = st(q.id)}
 		{@const b = dueBadge(s, now)}
+		<div class="witem">
 		<button class="wrow" type="button" aria-expanded={open === q.id} onclick={() => (open = open === q.id ? null : q.id)}>
 			<span class="tdot" style="background:var(--{TOPIC_COLORS[q.t]})"></span>
 			<span style="flex:1"><b>{q.q}</b>{#if !isNew(s) || open === q.id}<span class="muted">{correctText(q)}</span>{/if}
 				{#if open === q.id}
 					<span class="muted" style="display:block;margin-top:6px;font-size:12.5px">{q.e}</span>
-					<span class="wrapchips" style="margin-top:8px">
-						<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-						<span class="chip" class:on={!!s.flag} role="button" tabindex="0" onclick={(e) => { e.stopPropagation(); app.toggleFlag(q.id); }}>{s.flag ? 'Flagged' : 'Flag'}</span>
-						{#if q.card && CARD_BY_ID[q.card]}
-							<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-							<span class="chip" role="button" tabindex="0" onclick={(e) => { e.stopPropagation(); nav.openMap(CARD_BY_ID[q.card!].section.id); }}>On the map</span>
-						{/if}
-					</span>
+					{#if topMiss(s) !== undefined}<span class="muted" style="display:block;margin-top:4px;font-size:12.5px">Often mixed up with “{q.o[topMiss(s)!]}”</span>{/if}
 				{/if}
 			</span>
 			{#if s.lapses}<span class="zb w">✕{s.lapses}</span>{/if}
 			<span class="zb {b.cls}">{b.text}</span>
 		</button>
+		{#if open === q.id}
+			<div class="wrapchips wacts">
+				<button class="chip" class:on={!!s.flag} type="button" aria-pressed={!!s.flag} onclick={() => app.toggleFlag(q.id)}>{s.flag ? 'Flagged' : 'Flag'}</button>
+				{#if q.card && CARD_BY_ID[q.card]}<button class="chip" type="button" onclick={() => nav.openMap(CARD_BY_ID[q.card!].section.id)}>On the map</button>{/if}
+			</div>
+		{/if}
+		</div>
 	{/each}
 	{#if list.length > shown}<button class="chip" type="button" style="margin-top:10px" onclick={() => (shown += 60)}>Show more · {list.length - shown} left</button>{/if}
 </div>

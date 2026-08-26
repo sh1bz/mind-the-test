@@ -38,6 +38,13 @@ class AppStore {
 		d.n++; if (correct) d.ok++;
 		this.persist();
 	}
+	/** Count the wrong options picked (original indices); any wrong answer, first try or re-ask. */
+	recordMiss(id: string, picks: number[]) {
+		const s = this.item(id); const miss = (s.miss ?? []).slice();
+		for (const i of picks) { if (i >= 0 && i < 8) miss[i] = (miss[i] ?? 0) + 1; }
+		for (let i = 0; i < miss.length; i++) miss[i] = miss[i] ?? 0;
+		this.progress.items[id] = { ...s, miss }; this.persist();
+	}
 	relearn(id: string, now = Date.now()) { this.progress.items[id] = relearnItem(this.item(id), now, this.exam); this.persist(); }
 	toggleFlag(id: string) { const s = this.item(id); this.progress.items[id] = { ...s, flag: s.flag ? 0 : 1 }; this.persist(); }
 	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); }
@@ -45,7 +52,7 @@ class AppStore {
 	async reset() {
 		this.cancelPush();
 		if (this.user) { try { await supabase!.from('progress').delete().eq('user_id', this.user.id); } catch { /* the push below overwrites anyway */ } }
-		this.progress = empty(); this.persist();
+		this.progress = { ...empty(), resetAt: Date.now() }; this.persist();
 	}
 	private cancelPush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; } }
 	importBlob(raw: string): boolean {
@@ -80,6 +87,9 @@ class AppStore {
 		return error ? error.message : null;
 	}
 	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; }
+	/** Local progress belongs to the last account that synced it; a different account starts from the server copy, never a merge. */
+	private owner(): string | null { try { return localStorage.getItem(KEY + ':owner'); } catch { return null; } }
+	private setOwner(id: string) { try { localStorage.setItem(KEY + ':owner', id); } catch { /* private mode */ } }
 	async pull() {
 		if (!this.user) return;
 		this.sync = 'syncing';
@@ -87,8 +97,11 @@ class AppStore {
 			const { data, error } = await supabase!.from('progress').select('blob').eq('user_id', this.user.id).maybeSingle();
 			if (error) throw error;
 			const remote = data?.blob ? parse(data.blob, IDS, Date.now()) : null;
-			this.progress = remote ? merge(this.progress, remote) : this.progress;
-			if (browser) localStorage.setItem(KEY, JSON.stringify(this.progress));
+			const owner = this.owner();
+			const foreign = owner !== null && owner !== this.user.id;
+			this.progress = remote ? (foreign ? remote : merge(this.progress, remote)) : foreign ? empty() : this.progress;
+			this.setOwner(this.user.id);
+			if (browser) try { localStorage.setItem(KEY, JSON.stringify(this.progress)); } catch { /* quota or private mode */ }
 			await this.push();
 		} catch { this.sync = 'offline'; }
 	}

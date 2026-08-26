@@ -12,6 +12,7 @@ export type SessionCtx = {
 	now: () => number;
 	rand: () => number;
 	newPerRefill?: number;
+	topic?: (id: string) => number; // when given, consecutive cards avoid sharing a topic
 };
 
 export const shuffle = <T,>(a: T[], rand: () => number): T[] => {
@@ -19,12 +20,23 @@ export const shuffle = <T,>(a: T[], rand: () => number): T[] => {
 	return a;
 };
 
+/** Reorder in place so no two neighbours share a topic where the mix allows it (interleaving aids retention). */
+export const interleave = (ids: string[], topic?: (id: string) => number): string[] => {
+	if (!topic) return ids;
+	for (let i = 1; i < ids.length; i++) {
+		if (topic(ids[i]) !== topic(ids[i - 1])) continue;
+		const j = ids.findIndex((id, k) => k > i && topic(id) !== topic(ids[i - 1]));
+		if (j > 0) [ids[i], ids[j]] = [ids[j], ids[i]];
+	}
+	return ids;
+};
+
 export class Session {
 	queue: Card[] = [];
 	recent: string[] = [];
 	done = 0; firstTry = { ok: 0, n: 0 }; streak = 0; best = 0;
 	constructor(public mode: Mode, private ctx: SessionCtx, seed: string[] = []) {
-		if (mode === 'smart') this.refill(); else this.queue = shuffle(seed.slice(), ctx.rand).map((id) => ({ id, attempted: false, needed: 1 }));
+		if (mode === 'smart') this.refill(); else this.queue = interleave(shuffle(seed.slice(), ctx.rand), ctx.topic).map((id) => ({ id, attempted: false, needed: 1 }));
 	}
 	get length() { return this.queue.length; }
 
@@ -55,7 +67,7 @@ export class Session {
 			add = rest.slice(0, LIMIT);
 		}
 		if (!add.length) add = ids.filter((id) => !avoid.has(id) && !isKnown(state(id))).slice(0, LIMIT);
-		this.queue.push(...shuffle(add, rand).map((id) => ({ id, attempted: false, needed: 1 })));
+		this.queue.push(...interleave(shuffle(add, rand), this.ctx.topic).map((id) => ({ id, attempted: false, needed: 1 })));
 	}
 
 	next(): Card | null {
@@ -69,21 +81,22 @@ export class Session {
 		this.queue.splice(Math.min(gap, this.queue.length), 0, card);
 	}
 
-	/** Record an answer. Returns whether this answer should be graded by the scheduler (first try only). */
-	answer(card: Card, correct: boolean): { schedule: boolean } {
+	/** Record an answer. `schedule`: grade it (first try only). `recovered`: a missed card passed both re-asks. */
+	answer(card: Card, correct: boolean): { schedule: boolean; recovered: boolean } {
 		this.recent.push(card.id); if (this.recent.length > 10) this.recent.shift();
 		const first = !card.attempted;
+		let recovered = false;
 		if (first) { this.firstTry.n++; if (correct) this.firstTry.ok++; }
 		if (correct) {
 			this.streak++; this.best = Math.max(this.best, this.streak);
-			if (!first) { card.needed--; if (card.needed > 0) this.reinsert(card, 15, 20); }
+			if (!first) { card.needed--; if (card.needed > 0) this.reinsert(card, 15, 20); else recovered = true; }
 		} else {
 			this.streak = 0;
 			card.attempted = true; card.needed = 2;
 			this.reinsert(card, 8, 12);
 		}
 		this.done++;
-		return { schedule: first };
+		return { schedule: first, recovered };
 	}
 }
 

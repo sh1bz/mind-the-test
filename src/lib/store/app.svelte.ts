@@ -38,6 +38,7 @@ class AppStore {
 		d.n++; if (correct) d.ok++;
 		this.persist();
 	}
+	relearn(id: string, now = Date.now()) { this.progress.items[id] = relearnItem(this.item(id), now, this.exam); this.persist(); }
 	toggleFlag(id: string) { const s = this.item(id); this.progress.items[id] = { ...s, flag: s.flag ? 0 : 1 }; this.persist(); }
 	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); }
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }

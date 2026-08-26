@@ -23,7 +23,8 @@ export const KNOWN_IVL = 7; // interval at which a question counts as "known"
 export const fresh = (): ItemState => ({ reps: 0, lapses: 0, ease: 2.5, ivl: 0, due: 0, last: 0, seen: 0, flag: 0 });
 
 export const isNew = (s: ItemState) => s.seen === 0;
-export const isKnown = (s: ItemState) => s.ivl >= KNOWN_IVL;
+// Known = a week-long interval, or three correct reviews in a row (the exam cap can keep intervals short).
+export const isKnown = (s: ItemState) => s.ivl >= KNOWN_IVL || s.reps >= 3;
 export const isDue = (s: ItemState, now: number) => s.seen > 0 && s.due <= now;
 export const isWeak = (s: ItemState) => s.lapses >= 2 && !isKnown(s);
 
@@ -36,7 +37,7 @@ export function recall(s: ItemState, at: number): number {
 }
 
 /** Apply a first-try answer. `exam` (ms) caps the interval so the review lands before the test. */
-export function grade(s: ItemState, correct: boolean, now: number, exam?: number): ItemState {
+export function grade(s: ItemState, correct: boolean, now: number, exam?: number, rand: () => number = Math.random): ItemState {
 	const n = { ...s, seen: s.seen + 1, last: now };
 	if (!correct) {
 		n.lapses++;
@@ -49,8 +50,14 @@ export function grade(s: ItemState, correct: boolean, now: number, exam?: number
 	n.reps++;
 	if (n.reps === 1) n.ivl = FIRST_IVL;
 	else if (n.reps === 2) n.ivl = SECOND_IVL;
-	else n.ivl = Math.round(n.ivl * n.ease);
+	else {
+		// Credit the real gap: a question still remembered after being overdue earns a longer interval.
+		const elapsed = s.last ? (now - s.last) / DAY : 0;
+		n.ivl = Math.round(Math.max(n.ivl, elapsed) * n.ease);
+	}
 	n.ease = Math.min(MAX_EASE, n.ease + 0.05);
+	// ±5% fuzz so questions learned together do not all fall due on the same day.
+	if (n.ivl >= 3) n.ivl = Math.max(1, Math.round(n.ivl * (0.95 + 0.1 * rand())));
 	if (exam && exam > now) {
 		const daysLeft = Math.max(1, Math.floor((exam - now) / DAY));
 		// Never schedule past the day before the exam; keep at least one more pass inside the window.
@@ -61,6 +68,14 @@ export function grade(s: ItemState, correct: boolean, now: number, exam?: number
 }
 
 /** Legacy trainer zones (lifeuk-trainer-v1: b 0..5) → ItemState. */
+/** In-session recovery: a missed question answered correctly on both re-asks graduates from
+ *  "10 minutes" to a 1-day interval, so the session's work counts. Ease is unchanged. */
+export function relearn(s: ItemState, now: number, exam?: number): ItemState {
+	if (s.seen === 0 || s.ivl !== 0 || s.reps !== 0) return s;
+	const ivl = exam && exam > now ? Math.max(1, Math.min(FIRST_IVL, Math.floor((exam - now) / DAY / 2))) : FIRST_IVL;
+	return { ...s, reps: 1, ivl, last: now, due: now + ivl * DAY };
+}
+
 export function fromLegacy(l: { b: number; due: number; s: number; w: number; f?: number }, now: number): ItemState {
 	const ivl = [0, 0, 1, 3, 7, 14][Math.min(5, Math.max(0, l.b))];
 	const reps = l.b >= 2 ? l.b - 1 : 0;

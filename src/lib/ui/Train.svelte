@@ -16,12 +16,12 @@
 	const before = ready(st, now()).passProb;
 
 	// Build the queue for this kind of session
-	const ids = pool(spec.topic).map((q) => q.id);
+	const qs = pool(spec.topic); const ids = qs.map((q) => q.id); const topicOf = new Map(qs.map((q) => [q.id, q.t])); const topic = (id: string) => topicOf.get(id) ?? 0;
 	let session: Session; let goal: number;
 	if (spec.kind === 'smart') {
 		const p = plan(app.progress, st, now(), spec.topic);
 		goal = Math.min(40, Math.max(10, p.due + p.fresh));
-		session = new Session('smart', { ids, state: st, now, rand, newPerRefill: Math.max(1, p.fresh) });
+		session = new Session('smart', { ids, state: st, now, rand, topic, newPerRefill: Math.max(1, p.fresh) });
 	} else {
 		let seed: string[] = [];
 		if (spec.kind === 'review') seed = ids.filter((id) => isDue(st(id), now())).sort((a, b) => st(a).due - st(b).due);
@@ -29,7 +29,7 @@
 		else if (spec.kind === 'weak') seed = ids.filter((id) => isWeak(st(id)));
 		else seed = spec.ids ?? [];
 		goal = seed.length;
-		session = new Session('custom', { ids, state: st, now, rand }, seed);
+		session = new Session('custom', { ids, state: st, now, rand, topic }, seed);
 	}
 
 	let card = $state<Card | null>(null);
@@ -67,8 +67,9 @@
 		if (!q || !card || graded) return;
 		const chosen = picked.map((i) => order[i]).sort().join(',');
 		correct = chosen === [...q.c].sort().join(',');
-		const { schedule } = session.answer(card, correct);
+		const { schedule, recovered } = session.answer(card, correct);
 		if (schedule) app.answer(q.id, correct, now());
+		else if (recovered) app.relearn(q.id, now());
 		if (!correct) navigator.vibrate?.(60);
 		graded = true; done = session.done; streak = session.streak;
 	}

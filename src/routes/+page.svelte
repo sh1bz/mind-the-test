@@ -19,11 +19,14 @@
 	function done() { welcomed = true; nav.onboarding = false; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
 	const full = $derived(nav.screen === 'train' || nav.screen === 'mock');
 	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
-	// Back from Stripe: ?paid=1. Drop the flag from the URL, then confirm the entitlement.
+	// Back from Stripe: ?paid=1&session_id=cs_… Drop them from the URL. The session id signs the buyer in
+	// without an email; when that fails the thanks sheet falls back to the email link.
 	if (browser && new URLSearchParams(location.search).get('paid')) {
+		const sid = new URLSearchParams(location.search).get('session_id');
 		history.replaceState(null, '', location.pathname + location.hash);
 		nav.paywall = 'thanks';
-		if (app.user) app.claim();
+		if (sid && !app.user) app.claimSession(sid);
+		else if (app.user) app.claim();
 	}
 </script>
 

@@ -36,7 +36,10 @@
 	<Sheet label="Payment received" close="Later" onclose={close}>
 		<div class="onb">
 			<div class="lock ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7" /></svg></div>
-			{#if app.user}
+			{#if app.claiming}
+				<h3>Thank you</h3>
+				<p>Signing you in…</p>
+			{:else if app.user}
 				<h3>Thank you</h3>
 				{#if checking}<p>Confirming your payment…</p>
 				{:else if missing}<p>Not found yet for <b>{app.user.email}</b>. Use the email from the Stripe receipt, or try again in a minute.</p>

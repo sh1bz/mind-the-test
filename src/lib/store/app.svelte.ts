@@ -103,6 +103,21 @@ class AppStore {
 			const v = (data?.length ?? 0) > 0; this.setPaid(v); return v;
 		} catch { return null; }
 	}
+	/** Back from Stripe with a session id: the server verifies it and hands back a one-time sign-in token. */
+	claiming = $state(false);
+	async claimSession(sid: string): Promise<boolean> {
+		if (!supabase) return false;
+		this.claiming = true;
+		try {
+			const r = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid }) });
+			if (!r.ok) return false;
+			const { token_hash, type } = (await r.json()) as { token_hash: string; type: 'magiclink' | 'signup' };
+			const { error } = await supabase.auth.verifyOtp({ token_hash, type });
+			if (error) return false;
+			this.setPaid(true);
+			return true;
+		} catch { return false; } finally { this.claiming = false; }
+	}
 	/** After Stripe redirects back: the webhook can lag a few seconds, so poll. */
 	async claim(tries = 8): Promise<boolean> {
 		for (let i = 0; i < tries; i++) {

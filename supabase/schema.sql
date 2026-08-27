@@ -33,3 +33,4 @@ alter table public.entitlements enable row level security;
 drop policy if exists "own entitlement select" on public.entitlements;
 create policy "own entitlement select" on public.entitlements for select
 	using (email = lower(coalesce(auth.jwt() ->> 'email', '')));
+alter table public.entitlements add column if not exists claimed_at timestamptz;

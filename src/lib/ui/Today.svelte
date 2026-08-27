@@ -2,10 +2,8 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { TOPIC_COLORS, TOPICS } from '$lib/content';
-	import { plan, topicStats, sticky, answered, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
-	import { streakDays } from '$lib/store/progress';
+	import { plan, topicStats, stateCounts, verdict, slippingIds, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
 	import { EXAM_PASS, EXAM_QUESTIONS, EXAM_MINUTES } from '$lib/engine/readiness';
-	import { QUESTIONS } from '$lib/content';
 	import { TOPIC_ICONS } from './icons';
 	import Gauge from './Gauge.svelte';
 	import Ic from './Ic.svelte';
@@ -15,10 +13,14 @@
 	const r = $derived(ready(st, now));
 	const p = $derived(plan(app.progress, st, now, nav.topic));
 	const lines = $derived(topicStats(st));
-	const k = $derived(sticky(st));
-	const a = $derived(answered(st));
-	const streak = $derived(streakDays(app.progress.days, now));
-	const mocks = $derived(app.progress.mocks.slice(-3).map((m) => m.score));
+	const c = $derived(stateCounts(st));
+	const v = $derived(verdict(r.passProb));
+	const slipIds = $derived(slippingIds(st, nav.topic));
+	const readySub = $derived(
+		c.slip > 0 ? `Clear the ${c.slip} slipping and you climb.`
+		: r.passProb >= 0.8 ? 'You pass. Keep it warm with a short session.'
+		: `${c.almost + c.learn} still to lock in.`
+	);
 	const left = $derived(daysLeft(app.exam, now));
 	const topicName = $derived(nav.topic === null ? '' : TOPICS[nav.topic]);
 	const title = $derived(nav.topic === null ? "Today's session" : `${topicName} session`);
@@ -44,13 +46,26 @@
 	<div class="hd"><Ic name="heart" color="var(--red)" sm />Readiness{#if app.exam}<span class="muted small num" style="margin-left:auto">Test {fmtDay(app.exam)}</span>{/if}</div>
 	<div class="hero">
 		<Gauge value={r.passProb} />
-		<div class="stats">
-			<div><b class="num">{k} <span class="muted" style="font-size:13px;font-weight:500">/ {a}</span></b>Sticky</div>
-			<div><b class="num">{a} <span class="muted" style="font-size:13px;font-weight:500">/ {QUESTIONS.length}</span></b>Answered</div>
-			<div><b class="num">{streak}</b>Day streak</div>
-			<div><b class="num">{mocks.length ? mocks.join(' · ') : '—'}</b>Last mocks</div>
+		<div class="verdict">
+			<h4 style="color:{v.tone}">{v.label}</h4>
+			<p class="muted">{readySub}</p>
 		</div>
 	</div>
+</div>
+
+<div class="loop">
+	<div class="ltile good"><b class="num">🧠 {c.stuck}</b><span>Stuck</span></div>
+	<div class="ltile learn"><b class="num">🔄 {c.almost + c.learn}</b><span>Still learning</span></div>
+	<div class="ltile slip"><b class="num">⚠️ {c.slip}</b><span>Slipping</span></div>
+</div>
+<div class="card seg">
+	<div class="segbar">
+		<i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i>
+		<i style="width:{(100 * c.almost) / c.total}%;background:#a7e3b8"></i>
+		<i style="width:{(100 * c.learn) / c.total}%;background:#bcdcff"></i>
+		<i style="width:{(100 * c.slip) / c.total}%;background:var(--red)"></i>
+	</div>
+	<div class="segcap"><span><b class="num">{c.stuck}</b> of {c.total} locked in</span><span class="num">{c.total - c.stuck} to go</span></div>
 </div>
 
 {#if nav.topic !== null}
@@ -61,7 +76,7 @@
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={() => start('review')} disabled={!p.due}><Ic name="review" color="var(--blue)" />Questions to review{#if !p.due && p.soon}<span class="v num">{p.soon} back in {fmtIn(p.soonAt - now)}</span>{:else}<b class="v ink num">{p.due}</b>{/if}<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => start('new')} disabled={!p.fresh}><Ic name="plus" color="var(--green)" />New questions<b class="v ink num">{p.fresh}</b><span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => start('weak')} disabled={!p.weak}><Ic name="warn" color="var(--orange)" />Ones you keep missing<b class="v ink num">{p.weak}</b><span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: nav.topic, ids: slipIds, title: 'Fix slipping' })} disabled={!slipIds.length}><Ic name="warn" color="var(--orange)" />Fix what’s slipping<b class="v ink num">{slipIds.length}</b><span class="chev">›</span></button>
 	<div class="lrow"><Ic name="clock" color="var(--indigo)" />Time needed<span class="v num">{nothing ? '—' : `about ${p.minutes} min`}</span></div>
 </div>
 
@@ -83,3 +98,21 @@
 		</button>
 	{/each}
 </div>
+
+<style>
+	.verdict { display: flex; flex-direction: column; justify-content: center; }
+	.verdict h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
+	.verdict p { font-size: 14px; line-height: 1.35; margin: 0; }
+	.loop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 12px; }
+	.ltile { background: var(--card); border-radius: 14px; padding: 13px 12px; }
+	.ltile b { display: flex; align-items: center; gap: 5px; font-size: 23px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+	.ltile span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+	.ltile.good b { color: var(--green); }
+	.ltile.learn b { color: var(--blue); }
+	.ltile.slip b { color: var(--orange); }
+	.card.seg { margin-top: 12px; }
+	.segbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
+	.segbar i { display: block; height: 100%; }
+	.segcap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
+	.segcap b { color: var(--ink); }
+</style>

@@ -1,6 +1,6 @@
 // Pure helpers the screens share: plan counts, topic stats, dates, milestones.
 import { QUESTIONS, TOPICS, BY_ID, type Question } from '$lib/content';
-import { isDue, isKnown, isNew, isWeak, type ItemState, DAY } from '$lib/engine/scheduler';
+import { isDue, isKnown, isNew, isWeak, isSlipping, isAlmostStuck, type ItemState, DAY } from '$lib/engine/scheduler';
 const HOUR = 3_600_000;
 import { newPerDay, readiness, EXAM_PASS } from '$lib/engine/readiness';
 import type { Progress } from '$lib/store/progress';
@@ -33,10 +33,31 @@ export function topicStats(state: StateOf) {
 }
 
 export const known = (state: StateOf) => QUESTIONS.filter((q) => isKnown(state(q.id))).length;
-/** Mastered — will stick (same rule as known). */
-export const sticky = known;
-/** Answered at least once, all-time. */
+/** Mastered — locked in. */
+export const stuck = known;
 export const answered = (state: StateOf) => QUESTIONS.filter((q) => !isNew(state(q.id))).length;
+/** How many questions sit in each state of the loop. Every question lands in exactly one bucket. */
+export function stateCounts(state: StateOf) {
+	let stuck = 0, almost = 0, learn = 0, slip = 0, unseen = 0;
+	for (const q of QUESTIONS) {
+		const s = state(q.id);
+		if (isNew(s)) unseen++;
+		else if (isKnown(s)) stuck++;
+		else if (isSlipping(s)) slip++;
+		else if (isAlmostStuck(s)) almost++;
+		else learn++;
+	}
+	return { stuck, almost, learn, slip, unseen, total: QUESTIONS.length };
+}
+/** The ids of everything currently slipping — a one-tap session to catch them. */
+export const slippingIds = (state: StateOf, topic: number | null = null) =>
+	pool(topic).filter((q) => isSlipping(state(q.id))).map((q) => q.id);
+/** A plain-English call on test-day chance. */
+export function verdict(passProb: number): { label: string; tone: string } {
+	if (passProb >= 0.8) return { label: "You're ready", tone: 'var(--green)' };
+	if (passProb >= 0.55) return { label: 'Almost ready', tone: 'var(--orange)' };
+	return { label: 'Keep training', tone: 'var(--red)' };
+}
 /** Seen at least once but not yet known. */
 export const learning = (state: StateOf) => QUESTIONS.filter((q) => { const s = state(q.id); return !isNew(s) && !isKnown(s); }).length;
 export const ready = (state: StateOf, now: number) => readiness(QUESTIONS.map((q) => state(q.id)), now);
@@ -62,7 +83,9 @@ export const pct = (x: number) => `${Math.round(x * 100)}%`;
 /** Badge for a question row: when it comes back, or known. */
 export function dueBadge(s: ItemState, now: number): { text: string; cls: string } {
 	if (isNew(s)) return { text: 'new', cls: '' };
-	if (isKnown(s)) return { text: 'known', cls: 'k' };
+	if (isSlipping(s)) return { text: 'slipping', cls: 'w' };
+	if (isKnown(s)) return { text: 'stuck', cls: 'k' };
+	if (isAlmostStuck(s)) return { text: 'almost', cls: '' };
 	if (s.due <= now) return { text: 'due', cls: '' };
 	return { text: fmtIn(s.due - now), cls: '' };
 }

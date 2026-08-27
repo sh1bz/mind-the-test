@@ -71,3 +71,19 @@ it('a reset on one device wins over older data from another', () => {
 	const after: Progress = { ...empty(), items: { b: { ...fresh(), seen: 1, last: t + 10, reps: 1, ivl: 1, due: t + DAY } }, updatedAt: t + 10 };
 	expect(Object.keys(merge(wiped, after).items)).toEqual(['b']);
 });
+
+describe('feedback flag', () => {
+	it('parses and merges fb, keeping the latest', () => {
+		const a: Progress = { ...empty(), fb: 5, updatedAt: 5 };
+		const b: Progress = { ...empty(), fb: 9, updatedAt: 3 };
+		expect(parse(JSON.parse(JSON.stringify(a)), [], 10)?.fb).toBe(5);
+		expect(parse({ v: 2, items: {} }, [], 10)?.fb).toBeUndefined();
+		expect(merge(a, b).fb).toBe(9);
+		expect(merge(a, empty()).fb).toBe(5);
+		expect(merge(empty(), empty()).fb).toBeUndefined();
+	});
+	it('survives a reset cut', () => {
+		const wiped: Progress = { ...empty(), resetAt: 100, updatedAt: 100 };
+		expect(merge({ ...empty(), fb: 5 }, wiped).fb).toBe(5);
+	});
+});

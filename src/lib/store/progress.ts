@@ -13,6 +13,7 @@ export type Progress = {
 	ms: Record<string, number>; // milestone id → when it was first reached
 	updatedAt: number;
 	resetAt?: number; // a reset on any device wipes older data everywhere on merge
+	fb?: number; // when the feedback card was sent or skipped; asked once, on any device
 };
 
 export const empty = (): Progress => ({ v: 2, items: {}, mocks: [], days: {}, ms: {}, updatedAt: 0 });
@@ -48,7 +49,8 @@ export function parse(raw: unknown, legacyIds: string[], now: number): Progress 
 		for (const [id, v] of Object.entries(r.items as Record<string, unknown>)) if (v && typeof v === 'object') items[id] = sanitize(v as Record<string, unknown>);
 		const exam = typeof r.exam === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.exam) ? r.exam : undefined;
 		const resetAt = num(r.resetAt, 0);
-		return { v: 2, items, exam, mocks: Array.isArray(r.mocks) ? (r.mocks as Mock[]) : [], days: r.days && typeof r.days === 'object' ? (r.days as Record<string, Day>) : {}, ms: r.ms && typeof r.ms === 'object' ? (r.ms as Record<string, number>) : {}, updatedAt: num(r.updatedAt, 0), ...(resetAt ? { resetAt } : {}) };
+		const fb = num(r.fb, 0);
+		return { v: 2, items, exam, mocks: Array.isArray(r.mocks) ? (r.mocks as Mock[]) : [], days: r.days && typeof r.days === 'object' ? (r.days as Record<string, Day>) : {}, ms: r.ms && typeof r.ms === 'object' ? (r.ms as Record<string, number>) : {}, updatedAt: num(r.updatedAt, 0), ...(resetAt ? { resetAt } : {}), ...(fb ? { fb } : {}) };
 	}
 	if (r.items && typeof r.items === 'object' && !('v' in r)) {
 		const items: Record<string, ItemState> = {};
@@ -84,6 +86,8 @@ export function merge(a: Progress, b: Progress): Progress {
 	for (const k of new Set([...Object.keys(a.ms ?? {}), ...Object.keys(b.ms ?? {})])) { const at = Math.min(a.ms?.[k] ?? Infinity, b.ms?.[k] ?? Infinity); if (at >= cut) out.ms[k] = at; }
 	const newer = a.updatedAt >= b.updatedAt ? a : b;
 	out.exam = newer.exam;
+	const fb = Math.max(a.fb ?? 0, b.fb ?? 0);
+	if (fb) out.fb = fb;
 	out.updatedAt = Math.max(a.updatedAt, b.updatedAt);
 	return out;
 }

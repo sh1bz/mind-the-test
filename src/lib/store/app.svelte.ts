@@ -55,10 +55,20 @@ class AppStore {
 	toggleFlag(id: string) { const s = this.item(id); this.progress.items[id] = { ...s, flag: s.flag ? 0 : 1 }; this.persist(); }
 	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); }
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }
+	/** The feedback card shows once, after the first mock, and never again once sent or skipped (a reset does not bring it back). */
+	get askFeedback() { return this.progress.mocks.length === 1 && !this.progress.fb; }
+	async sendFeedback(score: number | null, text: string) {
+		this.progress.fb = Date.now(); this.persist();
+		if (!supabaseEnabled || (score === null && !text)) return;
+		const last = this.progress.mocks[this.progress.mocks.length - 1];
+		try {
+			await supabase!.from('feedback').insert({ user_id: this.user?.id ?? null, email: this.user?.email ?? null, score, text: text || null, answered: this.answered, mocks: this.progress.mocks.length, mock_score: last?.score ?? null });
+		} catch { /* best effort: the card is gone either way */ }
+	}
 	async reset() {
 		this.cancelPush();
 		if (this.user) { try { await supabase!.from('progress').delete().eq('user_id', this.user.id); } catch { /* the push below overwrites anyway */ } }
-		this.progress = { ...empty(), resetAt: Date.now() }; this.persist();
+		this.progress = { ...empty(), resetAt: Date.now(), ...(this.progress.fb ? { fb: this.progress.fb } : {}) }; this.persist();
 	}
 	private cancelPush() { if (this.timer) { clearTimeout(this.timer); this.timer = null; } }
 	importBlob(raw: string): boolean {

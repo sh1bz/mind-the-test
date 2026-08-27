@@ -6,6 +6,7 @@
 	import { pickMock, EXAM_PASS, EXAM_MINUTES, EXAM_QUESTIONS } from '$lib/engine/readiness';
 	import { optionOrder, fmtSecs, stampMilestones } from '$lib/ui/derive';
 	import Sheet from './Sheet.svelte';
+	import Feedback from './Feedback.svelte';
 	let { ondone }: { ondone?: () => void } = $props();
 	const st = (id: string) => app.item(id);
 	const startAt = Date.now();
@@ -14,6 +15,7 @@
 	let i = $state(0);
 	let secs = $state(EXAM_MINUTES * 60);
 	let leaving = $state(false);
+	let showFb = $state(false);
 	let result = $state<{ score: number; wrong: string[]; secs: number; byTopic: { name: string; ok: number; n: number }[] } | null>(null);
 	let announce = $state('');
 	const cur = $derived(qs[i]);
@@ -41,6 +43,7 @@
 			if (!ok) app.recordMiss(q.id, answers[k].map((d) => order[d]).filter((i) => !q.c.includes(i)));
 		});
 		app.addMock({ at: Date.now(), score, total: EXAM_QUESTIONS, secs: took, wrong });
+		showFb = app.askFeedback; // decided once here: the card stays up to show its thank-you after it is sent
 		stampMilestones(app.progress, st, Date.now()); app.persist();
 		result = { score, wrong, secs: took, byTopic: byTopic.filter((t) => t.n) };
 	}
@@ -68,6 +71,7 @@
 	</div>
 	<p class="muted" style="font-size:15px">{pass ? `Pass mark is ${EXAM_PASS}. Keep the reviews going so it holds on the day.` : `Pass mark is ${EXAM_PASS}. Every wrong answer is now scheduled to come back.`}</p>
 	<div class="topicrow">{#each result.byTopic as t (t.name)}<span>{t.name}</span><b class="num">{t.ok}/{t.n}</b>{/each}</div>
+	{#if showFb}<Feedback />{/if}
 	{#if result.wrong.length}
 		<button class="big alt" type="button" onclick={() => { ondone?.(); nav.startTrain({ kind: 'custom', topic: null, ids: result!.wrong, title: 'Missed in the mock' }); }}>Review the {result.wrong.length} you missed <span class="arrow">›</span></button>
 	{/if}

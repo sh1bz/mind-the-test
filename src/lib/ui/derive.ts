@@ -47,7 +47,7 @@ export function stateCounts(state: StateOf) {
 		else if (isAlmostStuck(s)) almost++;
 		else learn++;
 	}
-	return { stuck, almost, learn, slip, unseen, total: QUESTIONS.length };
+	return { stuck, almost, learn, slip, unseen, answered: QUESTIONS.length - unseen, total: QUESTIONS.length };
 }
 /** The ids of everything currently slipping — a one-tap session to catch them. */
 export const slippingIds = (state: StateOf, topic: number | null = null) =>

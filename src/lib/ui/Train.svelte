@@ -4,9 +4,9 @@
 	import { nav } from '$lib/ui/nav.svelte';
 	import { QUESTIONS, BY_ID, CARD_BY_ID, TOPICS, TOPIC_COLORS, type Question } from '$lib/content';
 	import { Session, shuffle, type Card } from '$lib/engine/session';
-	import { isDue, isNew, isWeak } from '$lib/engine/scheduler';
+	import { isDue, isNew, isWeak, isKnown } from '$lib/engine/scheduler';
 	import { correctText } from '$lib/ui/derive';
-	import { plan, pool, ready, optionOrder, stampMilestones } from '$lib/ui/derive';
+	import { plan, pool, ready, optionOrder, stampMilestones, stateCounts } from '$lib/ui/derive';
 	import Sheet from './Sheet.svelte';
 	import MapCardView from './MapCardView.svelte';
 
@@ -46,6 +46,9 @@
 	let acc = $state({ ok: 0, n: 0 });
 	let cheer = $state<string | null>(null);
 	let popKey = $state(0);
+	let lockKey = $state(0);
+	let cheerTone = $state('var(--orange)');
+	const career = $derived(stateCounts(st));
 	let cheerTimer: ReturnType<typeof setTimeout>;
 	function cheerFor(n: number): string | null {
 		if (n === 3) return '🔥 3 in a row!';
@@ -54,7 +57,7 @@
 		if (n > 10 && n % 5 === 0) return `🔥 ${n} in a row!`;
 		return null;
 	}
-	function showCheer(m: string) { cheer = m; clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1400); }
+	function showCheer(m: string, tone = 'var(--orange)') { cheer = m; cheerTone = tone; clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1400); }
 	let sheet = $state<string | null>(null);
 	const multi = $derived(!!q && q.c.length > 1);
 	const flagged = $derived(!!q && !!st(q.id).flag);
@@ -80,6 +83,7 @@
 	}
 	function grade() {
 		if (!q || !card || graded) return;
+		const wasStuck = isKnown(st(q.id));
 		const chosen = picked.map((i) => order[i]).sort().join(',');
 		correct = chosen === [...q.c].sort().join(',');
 		const { schedule, recovered } = session.answer(card, correct);
@@ -94,7 +98,11 @@
 			navigator.vibrate?.(60);
 		} else mixup = null;
 		graded = true; done = session.done; streak = session.streak; best = session.best; acc = { ...session.firstTry };
-		if (correct) { popKey++; const m = cheerFor(streak); if (m) showCheer(m); }
+		if (correct) {
+			popKey++;
+			if (isKnown(st(q.id)) && !wasStuck) { lockKey++; showCheer(`🧠 Locked in! ${career.stuck} of ${career.total}`, 'var(--green)'); }
+			else { const m = cheerFor(streak); if (m) showCheer(m); }
+		}
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
 	function finish() {
@@ -126,7 +134,8 @@
 		{#key popKey}<span class="flame" class:hot={streak >= 3} aria-label="{streak} in a row">🔥 {streak}</span>{/key}
 	</div>
 	<div class="runbar" aria-hidden="true"><span>{done}/{goal}</span><span>·</span><span>{acc.ok}/{acc.n} first try</span><span>·</span><span>best 🔥{best}</span></div>
-	{#if cheer}<div class="cheer" role="status">{cheer}</div>{/if}
+	{#key lockKey}<div class="career" class:lock={lockKey > 0}><span class="clabel">🧠 <b>{career.stuck}</b> locked in<span class="cmut"> · {career.answered} answered</span></span><span class="ctrack"><i class="cfill" style="width:{(100 * career.stuck) / career.total}%"></i><i class="cseen" style="width:{(100 * (career.total - career.unseen - career.stuck)) / career.total}%"></i></span></div>{/key}
+	{#if cheer}<div class="cheer" role="status" style="background:{cheerTone};box-shadow:0 14px 34px -10px {cheerTone}">{cheer}</div>{/if}
 	<div class="row">
 		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
 		<button class="chip" class:on={flagged} type="button" aria-pressed={flagged} onclick={() => app.toggleFlag(q!.id)}>{flagged ? 'Flagged' : 'Flag'} <span class="key">F</span></button>
@@ -174,6 +183,15 @@
 	.flame { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; }
 	.flame.hot { color: var(--orange); background: var(--warnbg); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3); }
 	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.38); } 100% { transform: scale(1); } }
+	.career { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+	.career.lock .cfill { animation: lockpulse 0.6s ease; }
+	.clabel { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
+	.clabel b { color: var(--green); }
+	.cmut { color: var(--muted); font-weight: 500; }
+	.ctrack { flex: 1; display: flex; height: 8px; border-radius: 5px; overflow: hidden; background: var(--soft); }
+	.cfill { height: 100%; background: var(--green); }
+	.cseen { height: 100%; background: #bfe6c9; }
+	@keyframes lockpulse { 0% { filter: brightness(1); } 40% { filter: brightness(1.4); } 100% { filter: brightness(1); } }
 	.runbar { display: flex; gap: 8px; justify-content: center; color: var(--muted); font-size: 12px; font-weight: 600; margin: -4px 0 8px; font-variant-numeric: tabular-nums; }
 	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 20; background: var(--orange); color: #fff; font-weight: 800; font-size: 18px; letter-spacing: -0.2px; padding: 11px 20px; border-radius: 14px; box-shadow: 0 14px 34px -10px rgba(255, 149, 0, 0.65); pointer-events: none; animation: cheerpop 1.4s ease forwards; }
 	@keyframes cheerpop {

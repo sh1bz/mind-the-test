@@ -16,10 +16,11 @@
 	const lines = $derived(topicStats(st));
 	const c = $derived(stateCounts(st));
 	const dayStreak = $derived(streakDays(app.progress.days, now));
-	const v = $derived(verdict(r.passProb));
+	const v = $derived(c.answered === 0 ? { label: 'Ready to begin', tone: 'var(--blue)' } : verdict(r.passProb));
 	const slipIds = $derived(slippingIds(st, nav.topic));
 	const readySub = $derived(
-		c.slip > 0 ? `Clear the ${c.slip} slipping and you climb.`
+		c.answered === 0 ? 'Answer a few questions to see your readiness.'
+		: c.slip > 0 ? `Clear the ${c.slip} slipping and you climb.`
 		: r.passProb >= 0.8 ? 'You pass. Keep it warm with a short session.'
 		: `${c.almost + c.learn} still to lock in.`
 	);
@@ -37,7 +38,6 @@
 <div class="datehd">{today}</div>
 <div class="row">
 	<h1 class="large">Today</h1>
-	{#if dayStreak > 0}<span class="chip tint num">🔥 {dayStreak} day{dayStreak === 1 ? '' : 's'}</span>{/if}
 	{#if app.exam && left !== undefined}
 		<button class="chip tint num" type="button" onclick={() => nav.go('account')}>Test {left <= 0 ? 'today' : `in ${left} day${left === 1 ? '' : 's'}`}</button>
 	{:else}
@@ -60,6 +60,7 @@
 	<div class="ltile good"><b class="num">🧠 {c.stuck}</b><span>Stuck</span></div>
 	<div class="ltile learn"><b class="num">🔄 {c.almost + c.learn}</b><span>Still learning</span></div>
 	<div class="ltile slip"><b class="num">⚠️ {c.slip}</b><span>Slipping</span></div>
+	<div class="ltile streak"><b class="num">🔥 {dayStreak}</b><span>Day streak</span></div>
 </div>
 <div class="card lockcard">
 	<div class="lockbar"><i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i></div>
@@ -101,13 +102,14 @@
 	.verdict { display: flex; flex-direction: column; justify-content: center; }
 	.verdict h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
 	.verdict p { font-size: 14px; line-height: 1.35; margin: 0; }
-	.loop { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 12px; }
-	.ltile { background: var(--card); border-radius: 14px; padding: 13px 12px; }
-	.ltile b { display: flex; align-items: center; gap: 5px; font-size: 23px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
-	.ltile span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+	.loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+	.ltile { background: var(--card); border-radius: 14px; padding: 12px 10px; }
+	.ltile b { display: flex; align-items: center; gap: 4px; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+	.ltile span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 6px; white-space: nowrap; }
 	.ltile.good b { color: var(--green); }
 	.ltile.learn b { color: var(--blue); }
 	.ltile.slip b { color: var(--orange); }
+	.ltile.streak b { color: var(--orange); }
 	.card.lockcard { margin-top: 12px; }
 	.lockbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
 	.lockbar i { display: block; height: 100%; }

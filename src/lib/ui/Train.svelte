@@ -69,6 +69,7 @@
 	let cvs = $state<HTMLCanvasElement>();
 	let parts: P[] = [];
 	let raf = 0;
+	let origin: { x: number; y: number } | null = null;
 	const PALETTES: Record<number, string[]> = {
 		1: ['#ff9500', '#ffcc00', '#ff3b30'],
 		2: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55'],
@@ -80,7 +81,7 @@
 		cvs.width = innerWidth; cvs.height = innerHeight;
 		const n = [0, 45, 80, 150, 240][tier] ?? 45;
 		const pal = tone.includes('green') ? ['#34c759', '#a7e3b8', '#ffd700', '#32ade6'] : PALETTES[tier] ?? PALETTES[1];
-		const cx = cvs.width / 2, cy = cvs.height * 0.26;
+		const cx = origin?.x ?? cvs.width / 2, cy = origin?.y ?? cvs.height * 0.72;
 		for (let i = 0; i < n; i++) {
 			const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * (5 + tier * 3.5);
 			parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (2 + tier), g: 0.12 + Math.random() * 0.1, size: 4 + Math.random() * (4 + tier), rot: Math.random() * 6.28, vrot: (Math.random() - 0.5) * 0.6, color: pal[i % pal.length], life: 1, decay: 0.006 + Math.random() * 0.006, shape: Math.random() < 0.5 ? 0 : 1 });
@@ -105,7 +106,6 @@
 	onDestroy(() => { if (raf) cancelAnimationFrame(raf); clearTimeout(cheerTimer); });
 	let sheet = $state<string | null>(null);
 	const multi = $derived(!!q && q.c.length > 1);
-	const flagged = $derived(!!q && !!st(q.id).flag);
 	const link = $derived(q?.card ? CARD_BY_ID[q.card] : undefined);
 	const stopItem = $derived.by(() => {
 		if (!link || !q) return null;
@@ -120,8 +120,9 @@
 		if (!c) { if (session.done === 0) { q = null; return; } return finish(); }
 		card = c; q = BY_ID[c.id]; order = optionOrder(q, rand); picked = []; graded = false;
 	}
-	function pick(i: number) {
+	function pick(i: number, e?: MouseEvent) {
 		if (graded || !q) return;
+		if (e && e.clientX) origin = { x: e.clientX, y: e.clientY };
 		if (!multi) { picked = [i]; grade(); return; }
 		picked = picked.includes(i) ? picked.filter((x) => x !== i) : [...picked, i];
 		if (picked.length === q.c.length) grade();
@@ -156,9 +157,8 @@
 	}
 	function key(e: KeyboardEvent) {
 		if (sheet) return;
-		if (e.key >= '1' && e.key <= '4') { pick(Number(e.key) - 1); e.preventDefault(); }
+		if (e.key >= '1' && e.key <= '4') { origin = null; pick(Number(e.key) - 1); e.preventDefault(); }
 		else if (e.key === 'Enter') { next(); e.preventDefault(); }
-		else if (e.key === 'f' || e.key === 'F') { if (q) app.toggleFlag(q.id); }
 		else if (e.key === 'Escape') finish();
 	}
 	onMount(load);
@@ -182,15 +182,11 @@
 	{#key lockKey}<div class="career" class:lock={lockKey > 0}><span class="clabel">🧠 <b>{career.stuck}</b> locked in<span class="cmut"> · {career.answered} answered</span></span><span class="ctrack"><i class="cfill" style="width:{(100 * career.stuck) / career.total}%"></i><i class="cseen" style="width:{(100 * (career.total - career.unseen - career.stuck)) / career.total}%"></i></span></div>{/key}
 	<canvas class="confetti" bind:this={cvs}></canvas>
 	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}">{cheer}</div>{/if}
-	<div class="row">
-		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
-		<button class="chip" class:on={flagged} type="button" aria-pressed={flagged} onclick={() => app.toggleFlag(q!.id)}>{flagged ? 'Flagged' : 'Flag'} <span class="key">F</span></button>
-	</div>
 	<p class="qtext">{q.q}</p>
-	{#if multi}<p class="muted small" style="margin-top:-6px">Select {q.c.length} answers</p>{/if}
+	<div class="qmeta"><span class="ttag" style="color:var(--{TOPIC_COLORS[q.t]})"><span class="tdot" style="background:var(--{TOPIC_COLORS[q.t]})"></span>{TOPICS[q.t]}</span>{#if multi}<span class="pick">Select {q.c.length}</span>{/if}</div>
 	<div class="opts">
 		{#each order as oi, i (oi)}
-			<button class="opt {cls(i)}" type="button" disabled={graded} aria-pressed={picked.includes(i)} onclick={() => pick(i)}>
+			<button class="opt {cls(i)}" type="button" disabled={graded} aria-pressed={picked.includes(i)} onclick={(e) => pick(i, e)}>
 				<span class="k">{'ABCD'[i]}</span><span style="flex:1">{q.o[oi]}</span><span class="key">{i + 1}</span>
 			</button>
 		{/each}
@@ -212,7 +208,7 @@
 	{#if graded}
 		<button class="big {correct ? 'ok' : 'bad'}" type="button" onclick={next}>Continue {#if !correct}<span><small>back in 8–12 cards</small></span>{/if}<span class="key">↵</span></button>
 	{:else if multi}
-		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={grade}>Check <span class="key">↵</span></button>
+		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={(e) => { if (e.clientX) origin = { x: e.clientX, y: e.clientY }; grade(); }}>Check <span class="key">↵</span></button>
 	{/if}
 {:else}
 	<h1 class="large">Nothing to train here.</h1><p class="muted">Every question in this set is known or not due yet.</p>
@@ -232,6 +228,10 @@
 	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.42); } 100% { transform: scale(1); } }
 	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.5); } 50% { box-shadow: 0 0 18px 4px rgba(255, 149, 0, 0.85); } }
 	.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
+	.qmeta { display: flex; align-items: center; gap: 10px; margin: 8px 0 16px; font-size: 12px; font-weight: 600; }
+	.ttag { display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.02em; }
+	.ttag .tdot { width: 7px; height: 7px; border-radius: 999px; }
+	.pick { color: var(--muted); }
 	.career { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
 	.career.lock .cfill { animation: lockpulse 0.6s ease; }
 	.clabel { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }

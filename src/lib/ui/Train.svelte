@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { QUESTIONS, BY_ID, CARD_BY_ID, TOPICS, TOPIC_COLORS, type Question } from '$lib/content';
@@ -45,19 +45,64 @@
 	let best = $state(0);
 	let acc = $state({ ok: 0, n: 0 });
 	let cheer = $state<string | null>(null);
+	let cheerTier = $state(1);
 	let popKey = $state(0);
 	let lockKey = $state(0);
 	let cheerTone = $state('var(--orange)');
 	const career = $derived(stateCounts(st));
 	let cheerTimer: ReturnType<typeof setTimeout>;
-	function cheerFor(n: number): string | null {
-		if (n === 3) return '🔥 3 in a row!';
-		if (n === 5) return '🔥 On fire — 5!';
-		if (n === 10) return '⚡ 10 straight!';
-		if (n > 10 && n % 5 === 0) return `🔥 ${n} in a row!`;
+	const reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+	function cheerFor(n: number): { msg: string; tier: number } | null {
+		if (n === 3) return { msg: '🔥 3 in a row!', tier: 1 };
+		if (n === 5) return { msg: '🔥🔥 On fire — 5!', tier: 2 };
+		if (n === 7) return { msg: '🔥 Red hot — 7!', tier: 2 };
+		if (n === 10) return { msg: '⚡ UNSTOPPABLE — 10!', tier: 3 };
+		if (n > 10 && n % 5 === 0) return { msg: `🌋 INSANE — ${n}!`, tier: 4 };
 		return null;
 	}
-	function showCheer(m: string, tone = 'var(--orange)') { cheer = m; cheerTone = tone; clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1400); }
+	function showCheer(msg: string, tier: number, tone = 'var(--orange)') {
+		cheer = msg; cheerTier = tier; cheerTone = tone;
+		clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1500);
+		burst(tier, tone);
+	}
+	type P = { x: number; y: number; vx: number; vy: number; g: number; size: number; rot: number; vrot: number; color: string; life: number; decay: number; shape: 0 | 1 };
+	let cvs = $state<HTMLCanvasElement>();
+	let parts: P[] = [];
+	let raf = 0;
+	const PALETTES: Record<number, string[]> = {
+		1: ['#ff9500', '#ffcc00', '#ff3b30'],
+		2: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55'],
+		3: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#32ade6', '#34c759'],
+		4: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#5856d6', '#32ade6', '#34c759', '#ffd700', '#ffffff']
+	};
+	function burst(tier: number, tone = 'var(--orange)') {
+		if (reduced || !cvs) return;
+		cvs.width = innerWidth; cvs.height = innerHeight;
+		const n = [0, 45, 80, 150, 240][tier] ?? 45;
+		const pal = tone.includes('green') ? ['#34c759', '#a7e3b8', '#ffd700', '#32ade6'] : PALETTES[tier] ?? PALETTES[1];
+		const cx = cvs.width / 2, cy = cvs.height * 0.26;
+		for (let i = 0; i < n; i++) {
+			const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * (5 + tier * 3.5);
+			parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (2 + tier), g: 0.12 + Math.random() * 0.1, size: 4 + Math.random() * (4 + tier), rot: Math.random() * 6.28, vrot: (Math.random() - 0.5) * 0.6, color: pal[i % pal.length], life: 1, decay: 0.006 + Math.random() * 0.006, shape: Math.random() < 0.5 ? 0 : 1 });
+		}
+		if (!raf) raf = requestAnimationFrame(tick);
+	}
+	function tick() {
+		const ctx = cvs?.getContext('2d');
+		if (!ctx || !cvs) { raf = 0; return; }
+		ctx.clearRect(0, 0, cvs.width, cvs.height);
+		parts = parts.filter((p) => p.life > 0 && p.y < cvs!.height + 40);
+		for (const p of parts) {
+			p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vrot; p.life -= p.decay;
+			ctx.save(); ctx.globalAlpha = Math.max(0, p.life); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
+			if (p.shape === 0) ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55);
+			else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, 6.28); ctx.fill(); }
+			ctx.restore();
+		}
+		if (parts.length) raf = requestAnimationFrame(tick);
+		else { raf = 0; ctx.clearRect(0, 0, cvs.width, cvs.height); }
+	}
+	onDestroy(() => { if (raf) cancelAnimationFrame(raf); clearTimeout(cheerTimer); });
 	let sheet = $state<string | null>(null);
 	const multi = $derived(!!q && q.c.length > 1);
 	const flagged = $derived(!!q && !!st(q.id).flag);
@@ -100,8 +145,8 @@
 		graded = true; done = session.done; streak = session.streak; best = session.best; acc = { ...session.firstTry };
 		if (correct) {
 			popKey++;
-			if (isKnown(st(q.id)) && !wasStuck) { lockKey++; showCheer(`🧠 Locked in! ${career.stuck} of ${career.total}`, 'var(--green)'); }
-			else { const m = cheerFor(streak); if (m) showCheer(m); }
+			if (isKnown(st(q.id)) && !wasStuck) { lockKey++; showCheer(`🧠 Locked in! ${career.stuck} of ${career.total}`, 2, 'var(--green)'); }
+			else { const c = cheerFor(streak); if (c) showCheer(c.msg, c.tier); }
 		}
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
@@ -131,11 +176,12 @@
 	<div class="navrow">
 		<button class="xbtn" type="button" aria-label="End session" onclick={finish}>✕</button>
 		<span class="pbar"><div style="width:{pctDone}%"></div></span>
-		{#key popKey}<span class="flame" class:hot={streak >= 3} aria-label="{streak} in a row">🔥 {streak}</span>{/key}
+		{#key popKey}<span class="flame" class:hot={streak >= 3} class:blaze={streak >= 10} aria-label="{streak} in a row">🔥 {streak}</span>{/key}
 	</div>
 	<div class="runbar" aria-hidden="true"><span>{done}/{goal}</span><span>·</span><span>{acc.ok}/{acc.n} first try</span><span>·</span><span>best 🔥{best}</span></div>
 	{#key lockKey}<div class="career" class:lock={lockKey > 0}><span class="clabel">🧠 <b>{career.stuck}</b> locked in<span class="cmut"> · {career.answered} answered</span></span><span class="ctrack"><i class="cfill" style="width:{(100 * career.stuck) / career.total}%"></i><i class="cseen" style="width:{(100 * (career.total - career.unseen - career.stuck)) / career.total}%"></i></span></div>{/key}
-	{#if cheer}<div class="cheer" role="status" style="background:{cheerTone};box-shadow:0 14px 34px -10px {cheerTone}">{cheer}</div>{/if}
+	<canvas class="confetti" bind:this={cvs}></canvas>
+	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}">{cheer}</div>{/if}
 	<div class="row">
 		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
 		<button class="chip" class:on={flagged} type="button" aria-pressed={flagged} onclick={() => app.toggleFlag(q!.id)}>{flagged ? 'Flagged' : 'Flag'} <span class="key">F</span></button>
@@ -180,9 +226,12 @@
 {/if}
 
 <style>
-	.flame { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; }
+	.flame { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; transition: color 0.2s; }
 	.flame.hot { color: var(--orange); background: var(--warnbg); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3); }
-	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.38); } 100% { transform: scale(1); } }
+	.flame.blaze { color: #fff; background: linear-gradient(90deg, #ff3b30, #ff9500); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
+	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.42); } 100% { transform: scale(1); } }
+	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.5); } 50% { box-shadow: 0 0 18px 4px rgba(255, 149, 0, 0.85); } }
+	.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
 	.career { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
 	.career.lock .cfill { animation: lockpulse 0.6s ease; }
 	.clabel { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
@@ -193,12 +242,17 @@
 	.cseen { height: 100%; background: #bfe6c9; }
 	@keyframes lockpulse { 0% { filter: brightness(1); } 40% { filter: brightness(1.4); } 100% { filter: brightness(1); } }
 	.runbar { display: flex; gap: 8px; justify-content: center; color: var(--muted); font-size: 12px; font-weight: 600; margin: -4px 0 8px; font-variant-numeric: tabular-nums; }
-	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 20; background: var(--orange); color: #fff; font-weight: 800; font-size: 18px; letter-spacing: -0.2px; padding: 11px 20px; border-radius: 14px; box-shadow: 0 14px 34px -10px rgba(255, 149, 0, 0.65); pointer-events: none; animation: cheerpop 1.4s ease forwards; }
+	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 31; color: #fff; font-weight: 800; letter-spacing: -0.3px; padding: 11px 20px; border-radius: 14px; pointer-events: none; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }
+	.cheer.tier1 { font-size: 18px; box-shadow: 0 14px 34px -10px rgba(255, 149, 0, 0.6); }
+	.cheer.tier2 { font-size: 21px; box-shadow: 0 16px 40px -8px rgba(255, 59, 48, 0.6); }
+	.cheer.tier3 { font-size: 25px; padding: 13px 24px; box-shadow: 0 18px 46px -8px rgba(175, 82, 222, 0.6); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards, wobble 0.5s ease-in-out; }
+	.cheer.tier4 { font-size: 30px; padding: 15px 28px; background: linear-gradient(90deg, #ff3b30, #ff9500, #ffcc00, #af52de) !important; box-shadow: 0 22px 60px -6px rgba(255, 45, 85, 0.7); animation: cheerpop 1.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards, wobble 0.45s ease-in-out 2; }
 	@keyframes cheerpop {
-		0% { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.8); }
-		14% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.06); }
-		28% { transform: translateX(-50%) translateY(0) scale(1); }
-		82% { opacity: 1; }
-		100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(1); }
+		0% { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.7); }
+		12% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.12); }
+		26% { transform: translateX(-50%) translateY(0) scale(1); }
+		80% { opacity: 1; }
+		100% { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(1); }
 	}
+	@keyframes wobble { 0%, 100% { rotate: 0deg; } 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
 </style>

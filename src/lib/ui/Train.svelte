@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
-	import { QUESTIONS, BY_ID, CARD_BY_ID, TOPICS, TOPIC_COLORS, type Question } from '$lib/content';
+	import { QUESTIONS, BY_ID, CARD_BY_ID, TOPIC_COLORS, type Question } from '$lib/content';
 	import { Session, shuffle, type Card } from '$lib/engine/session';
 	import { isDue, isNew, isWeak, isKnown } from '$lib/engine/scheduler';
 	import { correctText } from '$lib/ui/derive';
@@ -188,8 +188,11 @@
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
 	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}">{cheer}</div>{/if}
-	<p class="qtext">{q.q}</p>
-	<div class="qmeta"><span class="ttag" style="--tc:var(--{TOPIC_COLORS[q.t]})"><Ic name={TOPIC_ICONS[q.t]} color="var(--{TOPIC_COLORS[q.t]})" sm />{TOPICS[q.t]}</span>{#if multi}<span class="pick">Select {q.c.length}</span>{/if}</div>
+	<div class="qhead">
+		<span class="tico" style="--tc:var(--{TOPIC_COLORS[q.t]})"><Ic name={TOPIC_ICONS[q.t]} color="var(--tc)" /></span>
+		<p class="qtext">{q.q}</p>
+	</div>
+	{#if multi}<div class="qmeta"><span class="pick">Select {q.c.length}</span></div>{/if}
 	<div class="opts">
 		{#each order as oi, i (oi)}
 			<button class="opt {cls(i)}" type="button" disabled={graded} aria-pressed={picked.includes(i)} onclick={(e) => pick(i, e)}>
@@ -229,8 +232,9 @@
 
 <style>
 	.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
-	.qmeta { display: flex; align-items: center; gap: 10px; margin: 8px 0 16px; font-size: 12px; font-weight: 600; }
-	.ttag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px 4px 8px; border-radius: 999px; background: color-mix(in srgb, var(--tc) 13%, transparent); color: var(--tc); font-weight: 700; letter-spacing: 0.01em; }
+	.qhead { display: flex; align-items: flex-start; gap: 12px; }
+	.tico { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: color-mix(in srgb, var(--tc) 14%, transparent); margin-top: 1px; }
+	.qmeta { margin: 10px 0 16px; font-size: 12px; font-weight: 600; }
 	.pick { color: var(--muted); }
 	.stop { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 	.topcard { flex: 1; min-width: 0; background: var(--card); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }

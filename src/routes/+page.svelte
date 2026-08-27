@@ -30,11 +30,26 @@
 	function done() { welcomed = true; nav.onboarding = false; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
 	const full = $derived(nav.screen === 'train' || nav.screen === 'mock');
 	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
-	// Back from Stripe: ?paid=1. Drop the flag from the URL, then confirm the entitlement.
+	// Back from Stripe: ?paid=1&session_id=cs_… Drop them from the URL. The session id signs the buyer in
+	// without an email; when that fails the thanks sheet falls back to the email link.
+	// From the email: ?token_hash=…&type=email. Verify here, then drop it from the URL. A used or stale link
+	// (an older email, or a link a mail scanner already opened) lands on the Account tab with the reason.
+	const qs = browser ? new URLSearchParams(location.search) : null;
+	if (qs?.get('token_hash')) {
+		const th = qs.get('token_hash')!, ty = qs.get('type') ?? 'email';
+		history.replaceState(null, '', location.pathname + location.hash);
+		app.verifyLink(th, ty).then((ok) => { if (!ok) nav.go('account'); });
+	} else if (browser && /^#error=/.test(location.hash)) {
+		app.linkError = 'That link has expired or was already used. Request a new one.';
+		history.replaceState(null, '', location.pathname + '#account');
+		nav.go('account');
+	}
 	if (browser && new URLSearchParams(location.search).get('paid')) {
+		const sid = new URLSearchParams(location.search).get('session_id');
 		history.replaceState(null, '', location.pathname + location.hash);
 		nav.paywall = 'thanks';
-		if (app.user) app.claim();
+		if (sid && !app.user) app.claimSession(sid);
+		else if (app.user) app.claim();
 	}
 </script>
 

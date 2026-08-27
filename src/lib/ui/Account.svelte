@@ -37,18 +37,20 @@
 {#if app.user}
 	<div class="list">
 		<div class="lrow ic-sep"><Ic name="cloud" color="var(--blue)" />Signed in<span class="v num">sync · {syncWord}</span></div>
+		<div class="lrow ic-sep"><Ic name="mail" color="var(--blue)" />Email<span class="v" style="color:var(--ink);font-size:13px">{app.user.email}</span></div>
 		<button class="lrow" type="button" onclick={() => app.signOut()}><span style="color:var(--blue)">Sign out</span></button>
 	</div>
-	<p class="muted small" style="padding:0 4px">Your progress follows you to any device where you sign in with the same email. Your email is never shown in the app.</p>
+	<p class="muted small" style="padding:0 4px">Your progress follows you to any device where you sign in with this email.</p>
 {:else if sent}
 	<div class="card">
 		<div class="hd"><Ic name="mail" color="var(--blue)" sm />Check your email</div>
-		<p style="font-size:15px">We sent a link to <b>{email}</b>. Open it on this device and you are signed in. It can take a minute.</p>
+		<p style="font-size:15px">We sent a link to <b>{email}</b>. Open it on any device and you are signed in. It can take a minute.</p>
 		<button class="chip tint" type="button" style="margin-top:12px" onclick={() => (sent = false)}>Use a different email</button>
 	</div>
 {:else}
 	<div class="card">
 		<div class="hd"><Ic name="cloud" color="var(--blue)" sm />Keep your progress everywhere</div>
+		{#if app.linkError}<div class="verdict" style="margin-bottom:12px"><b>Link not valid</b>{app.linkError}</div>{/if}
 		<p class="muted" style="font-size:15px;margin-bottom:12px">Enter your email. We send a link; tap it and you are signed in. No password, no name, and your email is never shown in the app.</p>
 		<form onsubmit={send} style="display:flex;flex-direction:column;gap:10px">
 			<input class="field" type="email" required autocomplete="email" placeholder="you@example.com" aria-label="Email" bind:value={email} disabled={!app.cloud} style="background:var(--bg)" />

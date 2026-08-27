@@ -100,7 +100,18 @@ class AppStore {
 	async signIn(email: string): Promise<string | null> {
 		if (!supabaseEnabled) return 'Cloud sync is not configured.';
 		const { error } = await supabase!.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+		if (!error) this.linkError = null;
 		return error ? error.message : null;
+	}
+	/** Why the last email link did not sign the user in; shown above the sign-in form. */
+	linkError = $state<string | null>(null);
+	/** A link from the email: the page verifies it here, so a mail scanner that fetches the URL cannot use it up. */
+	async verifyLink(token_hash: string, type: string): Promise<boolean> {
+		if (!supabase) return false;
+		this.linkError = null;
+		const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as 'email' });
+		if (error) this.linkError = 'That link has expired or was already used. Request a new one.';
+		return !error;
 	}
 	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; this.setPaid(false); }
 	private setPaid(v: boolean) { this.paid = v; try { if (v) localStorage.setItem(PAID_KEY, '1'); else localStorage.removeItem(PAID_KEY); } catch { /* fine */ } }
@@ -112,6 +123,21 @@ class AppStore {
 			if (error) throw error;
 			const v = (data?.length ?? 0) > 0; this.setPaid(v); return v;
 		} catch { return null; }
+	}
+	/** Back from Stripe with a session id: the server verifies it and hands back a one-time sign-in token. */
+	claiming = $state(false);
+	async claimSession(sid: string): Promise<boolean> {
+		if (!supabase) return false;
+		this.claiming = true;
+		try {
+			const r = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sid }) });
+			if (!r.ok) return false;
+			const { token_hash, type } = (await r.json()) as { token_hash: string; type: 'magiclink' | 'signup' };
+			const { error } = await supabase.auth.verifyOtp({ token_hash, type });
+			if (error) return false;
+			this.setPaid(true);
+			return true;
+		} catch { return false; } finally { this.claiming = false; }
 	}
 	/** After Stripe redirects back: the webhook can lag a few seconds, so poll. */
 	async claim(tries = 8): Promise<boolean> {

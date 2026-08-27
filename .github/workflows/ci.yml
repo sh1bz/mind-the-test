@@ -1,0 +1,25 @@
+# CI only. The live site (untilitsticks.com) builds on Cloudflare Pages from main; nothing deploys from here.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+        env:
+          PUBLIC_PAY_LINK: ${{ vars.PUBLIC_PAY_LINK }}
+      - run: npm run build
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_PAY_LINK: ${{ vars.PUBLIC_PAY_LINK }}

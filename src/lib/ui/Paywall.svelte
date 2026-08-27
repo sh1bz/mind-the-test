@@ -14,9 +14,10 @@
 	let err = $state<string | null>(null);
 	let checking = $state(!!app.user);
 	let missing = $state(false);
+	let agree = $state(false); // immediate-supply / 14-day waiver consent, required before pay
 	function close() { nav.paywall = null; }
 	function pay() {
-		if (!LINK) return;
+		if (!LINK || !agree) return;
 		const e = app.user?.email;
 		location.href = LINK + (e ? (LINK.includes('?') ? '&' : '?') + 'prefilled_email=' + encodeURIComponent(e) : '');
 	}
@@ -73,8 +74,14 @@
 				<div class="lrow"><span class="n ok">✓</span>Pass chance and test-day plan</div>
 			</div>
 			<p class="price">{PRICE}<small>once, for good</small></p>
-			<button class="big" type="button" onclick={pay} disabled={!LINK}>{LINK ? `Unlock for ${PRICE}` : 'Checkout opens soon'} <span class="arrow">›</span></button>
-			<p class="fine">Secure checkout by Stripe. Apple Pay and Google Pay work.</p>
+			<label class="consent"><input type="checkbox" bind:checked={agree} /><span>I want access immediately and I understand I give up my 14-day right to cancel once it unlocks.</span></label>
+			<button class="big" type="button" onclick={pay} disabled={!LINK || !agree}>{LINK ? `Unlock for ${PRICE}` : 'Checkout opens soon'} <span class="arrow">›</span></button>
+			<p class="fine">Secure checkout by Stripe. Apple Pay and Google Pay work. Independent study aid — not the official test; no pass guarantee. See Terms &amp; refunds in Account.</p>
 		</div>
 	</Sheet>
 {/if}
+
+<style>
+	.consent { display: flex; gap: 10px; align-items: flex-start; text-align: left; font-size: 13px; line-height: 1.45; color: var(--ink2); cursor: pointer; }
+	.consent input { margin: 2px 0 0; width: 18px; height: 18px; accent-color: var(--blue); flex: none; }
+</style>

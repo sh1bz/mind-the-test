@@ -7,6 +7,7 @@
 	import Ic from './Ic.svelte';
 	import Sheet from './Sheet.svelte';
 	import Feedback from './Feedback.svelte';
+	import Legal from './Legal.svelte';
 	let email = $state('');
 	let sent = $state(false);
 	let err = $state<string | null>(null);
@@ -14,6 +15,7 @@
 	let editDate = $state(false);
 	let confirm = $state<'reset' | 'delete' | null>(null);
 	let feedback = $state(false);
+	let legal = $state<'privacy' | 'terms' | null>(null);
 	let importMsg = $state<string | null>(null);
 	let file: HTMLInputElement;
 	async function send(e: Event) {
@@ -97,11 +99,23 @@
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'reset')}><Ic name="review" color="var(--orange)" />Reset progress<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'delete')}><Ic name="trash" color="var(--red)" /><span style="color:var(--red)">Delete my data</span><span class="v">{app.user ? 'server and this device' : 'this device'}</span></button>
 </div>
+<div class="sec"><h2>Legal</h2></div>
+<div class="list">
+	<button class="lrow ic-sep" type="button" onclick={() => (legal = 'privacy')}><Ic name="cloud" color="var(--indigo)" />Privacy &amp; data<span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => (legal = 'terms')}><Ic name="flag" color="var(--blue)" />Terms &amp; refunds<span class="chev">›</span></button>
+</div>
+<p class="muted small" style="padding:0 4px">Until It Sticks is an independent study aid. It is not affiliated with the Home Office or the official Life in the UK Test, and passing is not guaranteed.</p>
+
 <input type="file" accept="application/json,.json" bind:this={file} onchange={importFile} class="sr" aria-label="Import a progress file" />
 {#if importMsg}<p class="muted small" style="padding:0 4px">{importMsg}</p>{/if}
 {#if feedback}
 	<Sheet label="Send feedback" close="Done" onclose={() => (feedback = false)}>
 		<Feedback skip={false} />
+	</Sheet>
+{/if}
+{#if legal}
+	<Sheet label={legal === 'privacy' ? 'Privacy & data' : 'Terms & refunds'} close="Done" onclose={() => (legal = null)}>
+		<Legal doc={legal} />
 	</Sheet>
 {/if}
 {#if confirm === 'reset'}

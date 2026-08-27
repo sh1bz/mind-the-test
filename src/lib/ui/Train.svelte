@@ -175,15 +175,15 @@
 <svelte:window onkeydown={key} />
 
 {#if q}
-	<div class="stop">
-		<button class="xbtn" type="button" aria-label="End session" onclick={finish}>✕</button>
-		<div class="topcard">
+	<div class="stopbar">
+		<div class="sbadges">
+			{#key popKey}<div class="sbadge streak" class:hot={streak >= 3} class:blaze={streak >= 10}><b>🔥 {streak}</b><span>Streak</span></div>{/key}
+			{#key lockKey}<div class="sbadge lock" class:pulse={lockKey > 0}><b>🧠 {career.stuck}</b><span>Locked in</span></div>{/key}
+			<div class="sbadge"><b>📚 {career.answered}</b><span>Answered</span></div>
+		</div>
+		<div class="scomplete">
 			<span class="sprog" aria-label="{pctDone}% of this session"><i style="width:{pctDone}%"></i></span>
-			<div class="sbadges">
-				{#key popKey}<div class="sbadge streak" class:hot={streak >= 3} class:blaze={streak >= 10}><b>🔥 {streak}</b><span>Streak</span></div>{/key}
-				{#key lockKey}<div class="sbadge lock" class:pulse={lockKey > 0}><b>🧠 {career.stuck}</b><span>Locked in</span></div>{/key}
-				<div class="sbadge"><b>📚 {career.answered}</b><span>Answered</span></div>
-			</div>
+			<span class="scap">{done} of {goal} answered this session</span>
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
@@ -216,6 +216,7 @@
 	{/if}
 	{#if graded}
 		<button class="big {correct ? 'ok' : 'bad'}" type="button" onclick={next}>Continue {#if !correct}<span><small>back in 8–12 cards</small></span>{/if}<span class="key">↵</span></button>
+		<button class="gohome" type="button" onclick={() => nav.home()}>Go home</button>
 	{:else if multi}
 		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={(e) => { if (e.clientX) origin = { x: e.clientX, y: e.clientY }; grade(); }}>Check <span class="key">↵</span></button>
 	{/if}
@@ -236,12 +237,13 @@
 	.tico { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: color-mix(in srgb, var(--tc) 14%, transparent); margin-top: 1px; }
 	.qmeta { margin: 10px 0 16px; font-size: 12px; font-weight: 600; }
 	.pick { color: var(--muted); }
-	.stop { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-	.topcard { flex: 1; min-width: 0; background: var(--card); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+	.stopbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+	.scomplete { display: flex; flex-direction: column; gap: 6px; }
 	.sprog { display: block; height: 8px; border-radius: 5px; background: var(--soft); overflow: hidden; }
 	.sprog i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--blue), #4aa3ff); transition: width 0.35s cubic-bezier(0.3, 0.9, 0.3, 1); }
+	.scap { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 	.sbadges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-	.sbadge { background: var(--bg); border-radius: 12px; padding: 9px 6px; text-align: center; }
+	.sbadge { background: var(--card); border-radius: 12px; padding: 10px 6px; text-align: center; }
 	.sbadge b { display: block; font-size: 18px; font-weight: 800; letter-spacing: -0.4px; line-height: 1; font-variant-numeric: tabular-nums; }
 	.sbadge span { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
 	.sbadge.lock b { color: var(--green); }
@@ -250,6 +252,7 @@
 	.sbadge.streak.hot b { color: var(--orange); }
 	.sbadge.streak.blaze { background: linear-gradient(135deg, #ff3b30, #ff9500); animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
 	.sbadge.streak.blaze b, .sbadge.streak.blaze span { color: #fff; }
+	.gohome { display: block; margin: 12px auto 0; padding: 6px 14px; background: none; border: 0; color: var(--muted); font-size: 13px; font-weight: 600; }
 	@keyframes pop { 0% { transform: scale(1); } 42% { transform: scale(1.1); } 100% { transform: scale(1); } }
 	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.4); } 50% { box-shadow: 0 0 18px 3px rgba(255, 149, 0, 0.7); } }
 	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 31; color: #fff; font-weight: 800; letter-spacing: -0.3px; padding: 11px 20px; border-radius: 14px; pointer-events: none; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }

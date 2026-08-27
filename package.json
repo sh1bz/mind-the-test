@@ -11,7 +11,8 @@
 		"test": "vitest run",
 		"content": "node scripts/build-content.mjs",
 		"deploy": "vite build && npx wrangler pages deploy build --project-name untilitsticks --branch main --commit-dirty=true && npm run indexnow",
-		"indexnow": "node scripts/indexnow.mjs"
+		"indexnow": "node scripts/indexnow.mjs",
+		"predeploy": "git fetch -q origin && git merge-base --is-ancestor origin/main HEAD || { echo \"HEAD is behind origin/main: git pull first, or the upload overwrites newer work\"; exit 1; }"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^3.0.10",

@@ -178,12 +178,12 @@
 	<div class="stop">
 		<button class="xbtn" type="button" aria-label="End session" onclick={finish}>✕</button>
 		<div class="topcard">
-			<div class="trow">
-				<span class="pbar"><div style="width:{pctDone}%"></div></span>
-				{#key popKey}<span class="flame" class:hot={streak >= 3} class:blaze={streak >= 10} aria-label="{streak} in a row">🔥 {streak}</span>{/key}
+			<span class="sprog" aria-label="{pctDone}% of this session"><i style="width:{pctDone}%"></i></span>
+			<div class="sbadges">
+				{#key popKey}<div class="sbadge streak" class:hot={streak >= 3} class:blaze={streak >= 10}><b>🔥 {streak}</b><span>Streak</span></div>{/key}
+				{#key lockKey}<div class="sbadge lock" class:pulse={lockKey > 0}><b>🧠 {career.stuck}</b><span>Locked in</span></div>{/key}
+				<div class="sbadge"><b>📚 {career.answered}</b><span>Answered</span></div>
 			</div>
-			{#key lockKey}<div class="career" class:lock={lockKey > 0}><span class="clabel">🧠 <b>{career.stuck}</b> locked in<span class="cmut"> · {career.answered} answered</span></span><span class="ctrack"><i class="cfill" style="width:{(100 * career.stuck) / career.total}%"></i><i class="cseen" style="width:{(100 * (career.total - career.unseen - career.stuck)) / career.total}%"></i></span></div>{/key}
-			<div class="srun" aria-hidden="true">{done}/{goal} this session · {acc.ok}/{acc.n} first try · best 🔥{best}</div>
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
@@ -228,28 +228,26 @@
 {/if}
 
 <style>
-	.flame { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; transition: color 0.2s; }
-	.flame.hot { color: var(--orange); background: var(--warnbg); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3); }
-	.flame.blaze { color: #fff; background: linear-gradient(90deg, #ff3b30, #ff9500); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
-	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.42); } 100% { transform: scale(1); } }
-	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.5); } 50% { box-shadow: 0 0 18px 4px rgba(255, 149, 0, 0.85); } }
 	.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 30; }
 	.qmeta { display: flex; align-items: center; gap: 10px; margin: 8px 0 16px; font-size: 12px; font-weight: 600; }
 	.ttag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px 4px 8px; border-radius: 999px; background: color-mix(in srgb, var(--tc) 13%, transparent); color: var(--tc); font-weight: 700; letter-spacing: 0.01em; }
 	.pick { color: var(--muted); }
-	.career { display: flex; align-items: center; gap: 10px; margin: 0; }
-	.career.lock .cfill { animation: lockpulse 0.6s ease; }
-	.clabel { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
-	.clabel b { color: var(--green); }
-	.cmut { color: var(--muted); font-weight: 500; }
-	.ctrack { flex: 1; display: flex; height: 8px; border-radius: 5px; overflow: hidden; background: var(--soft); }
-	.cfill { height: 100%; background: var(--green); }
-	.cseen { height: 100%; background: #bfe6c9; }
-	@keyframes lockpulse { 0% { filter: brightness(1); } 40% { filter: brightness(1.4); } 100% { filter: brightness(1); } }
-	.stop { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
-	.topcard { flex: 1; min-width: 0; background: var(--card); border-radius: 16px; padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 11px; }
-	.trow { display: flex; align-items: center; gap: 12px; }
-	.srun { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+	.stop { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+	.topcard { flex: 1; min-width: 0; background: var(--card); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+	.sprog { display: block; height: 8px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+	.sprog i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--blue), #4aa3ff); transition: width 0.35s cubic-bezier(0.3, 0.9, 0.3, 1); }
+	.sbadges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+	.sbadge { background: var(--bg); border-radius: 12px; padding: 9px 6px; text-align: center; }
+	.sbadge b { display: block; font-size: 18px; font-weight: 800; letter-spacing: -0.4px; line-height: 1; font-variant-numeric: tabular-nums; }
+	.sbadge span { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+	.sbadge.lock b { color: var(--green); }
+	.sbadge.lock.pulse { animation: pop 0.5s ease; }
+	.sbadge.streak.hot { background: var(--warnbg); animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3); }
+	.sbadge.streak.hot b { color: var(--orange); }
+	.sbadge.streak.blaze { background: linear-gradient(135deg, #ff3b30, #ff9500); animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
+	.sbadge.streak.blaze b, .sbadge.streak.blaze span { color: #fff; }
+	@keyframes pop { 0% { transform: scale(1); } 42% { transform: scale(1.1); } 100% { transform: scale(1); } }
+	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.4); } 50% { box-shadow: 0 0 18px 3px rgba(255, 149, 0, 0.7); } }
 	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 31; color: #fff; font-weight: 800; letter-spacing: -0.3px; padding: 11px 20px; border-radius: 14px; pointer-events: none; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }
 	.cheer.tier1 { font-size: 18px; box-shadow: 0 14px 34px -10px rgba(255, 149, 0, 0.6); }
 	.cheer.tier2 { font-size: 21px; box-shadow: 0 16px 40px -8px rgba(255, 59, 48, 0.6); }

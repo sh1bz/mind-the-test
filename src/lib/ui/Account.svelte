@@ -8,6 +8,7 @@
 	import Sheet from './Sheet.svelte';
 	import Feedback from './Feedback.svelte';
 	import Legal from './Legal.svelte';
+	import Contact from './Contact.svelte';
 	let email = $state('');
 	let sent = $state(false);
 	let err = $state<string | null>(null);
@@ -16,6 +17,7 @@
 	let confirm = $state<'reset' | 'delete' | null>(null);
 	let feedback = $state(false);
 	let legal = $state<'privacy' | 'terms' | null>(null);
+	let contact = $state(false);
 	let importMsg = $state<string | null>(null);
 	let file: HTMLInputElement;
 	async function send(e: Event) {
@@ -89,6 +91,7 @@
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={() => nav.showOnboarding()}><Ic name="book" color="var(--indigo)" />How it works<span class="chev">›</span></button>
 	<a class="lrow ic-sep" href="/life-in-the-uk-test/" data-sveltekit-reload style="text-decoration:none"><Ic name="flag" color="var(--blue)" />About the test<span class="chev">›</span></a>
+	<button class="lrow ic-sep" type="button" onclick={() => (contact = true)}><Ic name="mail" color="var(--blue)" />Contact support<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (feedback = true)}><Ic name="mail" color="var(--teal)" />Send feedback<span class="chev">›</span></button>
 </div>
 
@@ -116,6 +119,11 @@
 {#if legal}
 	<Sheet label={legal === 'privacy' ? 'Privacy & data' : 'Terms & refunds'} close="Done" onclose={() => (legal = null)}>
 		<Legal doc={legal} />
+	</Sheet>
+{/if}
+{#if contact}
+	<Sheet label="Contact support" close="Close" onclose={() => (contact = false)}>
+		<Contact onclose={() => (contact = false)} />
 	</Sheet>
 {/if}
 {#if confirm === 'reset'}

@@ -59,6 +59,15 @@ class AppStore {
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }
 	/** The feedback card shows once, after the first mock, and never again once sent or skipped (a reset does not bring it back). */
 	get askFeedback() { return this.progress.mocks.length === 1 && !this.progress.fb; }
+	/** Contact support: a free-text message, optional reply email. Stored with the feedback rows. */
+	async sendSupport(replyEmail: string | null, text: string): Promise<boolean> {
+		if (!supabaseEnabled || !text.trim()) return false;
+		const last = this.progress.mocks[this.progress.mocks.length - 1];
+		try {
+			const { error } = await supabase!.from('feedback').insert({ user_id: this.user?.id ?? null, email: replyEmail || this.user?.email || null, score: null, text: '[support] ' + text.trim().slice(0, 2000), answered: this.answered, mocks: this.progress.mocks.length, mock_score: last?.score ?? null });
+			return !error;
+		} catch { return false; }
+	}
 	async sendFeedback(score: number | null, text: string) {
 		this.progress.fb = Date.now(); this.persist();
 		if (!supabaseEnabled || (score === null && !text)) return;

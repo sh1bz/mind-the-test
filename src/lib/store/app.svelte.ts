@@ -5,6 +5,7 @@ import { QUESTIONS } from '$lib/content';
 import { fresh, grade, relearn as relearnItem, type ItemState } from '$lib/engine/scheduler';
 import { empty, merge, parse, dayKey, examMs, type Progress, type Mock } from './progress';
 import { supabase, supabaseEnabled } from './supabase';
+import { convert } from '$lib/seo/ads';
 
 const KEY = 'lifeuk-v2';
 const PAID_KEY = 'lifeuk-paid';
@@ -39,6 +40,7 @@ class AppStore {
 
 	// ---------- mutations ----------
 	answer(id: string, correct: boolean, now = Date.now()) {
+		if (this.answered === 0) convert('start');
 		this.progress.items[id] = grade(this.item(id), correct, now, this.exam);
 		const d = (this.progress.days[dayKey(now)] ??= { n: 0, ok: 0 });
 		d.n++; if (correct) d.ok++;
@@ -53,7 +55,7 @@ class AppStore {
 	}
 	relearn(id: string, now = Date.now()) { this.progress.items[id] = relearnItem(this.item(id), now, this.exam); this.persist(); }
 	toggleFlag(id: string) { const s = this.item(id); this.progress.items[id] = { ...s, flag: s.flag ? 0 : 1 }; this.persist(); }
-	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); }
+	setExam(date: string | undefined) { this.progress.exam = date || undefined; this.persist(); if (date) convert('date'); }
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }
 	/** The feedback card shows once, after the first mock, and never again once sent or skipped (a reset does not bring it back). */
 	get askFeedback() { return this.progress.mocks.length === 1 && !this.progress.fb; }

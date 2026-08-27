@@ -16,6 +16,7 @@
 	import Seo from '$lib/seo/Seo.svelte';
 	import { STATIC_PAGES } from '$lib/seo/site';
 	import { webapp, faqPage } from '$lib/seo/ld';
+	import { convert } from '$lib/seo/ads';
 	import { onMount } from 'svelte';
 
 	// The prerendered HTML is the landing (what crawlers and no-JS visitors read). The app takes
@@ -48,6 +49,7 @@
 		const sid = new URLSearchParams(location.search).get('session_id');
 		history.replaceState(null, '', location.pathname + location.hash);
 		nav.paywall = 'thanks';
+		convert('unlock', 4.99);
 		if (sid && !app.user) app.claimSession(sid);
 		else if (app.user) app.claim();
 	}

@@ -1,7 +1,10 @@
 <script lang="ts">
 	import '../app.css';
 	import { organization, website } from '$lib/seo/ld';
+	import { loadAds } from '$lib/seo/ads';
+	import { onMount } from 'svelte';
 	let { children } = $props();
+	onMount(loadAds);
 	const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [organization(), website()] }).replace(/</g, '\\u003c');
 </script>
 

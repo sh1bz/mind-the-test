@@ -82,6 +82,7 @@
 <div class="sec"><h2>Help</h2></div>
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={() => nav.showOnboarding()}><Ic name="book" color="var(--indigo)" />How it works<span class="chev">›</span></button>
+	<a class="lrow ic-sep" href="/life-in-the-uk-test/" data-sveltekit-reload style="text-decoration:none"><Ic name="flag" color="var(--blue)" />About the test<span class="chev">›</span></a>
 </div>
 
 <div class="sec"><h2>Data</h2></div>

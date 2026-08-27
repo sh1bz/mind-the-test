@@ -12,6 +12,17 @@
 	import QuestionsTab from '$lib/ui/QuestionsTab.svelte';
 	import Account from '$lib/ui/Account.svelte';
 	import Paywall from '$lib/ui/Paywall.svelte';
+	import Landing from '$lib/seo/Landing.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { STATIC_PAGES } from '$lib/seo/site';
+	import { webapp, faqPage } from '$lib/seo/ld';
+	import { onMount } from 'svelte';
+
+	// The prerendered HTML is the landing (what crawlers and no-JS visitors read). The app takes
+	// over on mount, so the server and first client render always match.
+	let mounted = $state(false);
+	onMount(() => { mounted = true; });
+	const home = STATIC_PAGES[0];
 
 	const WELCOMED = 'lifeuk-welcomed';
 	const seen = () => { try { return !!localStorage.getItem(WELCOMED); } catch { return true; } };
@@ -27,8 +38,11 @@
 	}
 </script>
 
-<svelte:head><title>Until It Sticks</title></svelte:head>
+<Seo title={home.title} description={home.description} path="/" jsonld={[webapp(), faqPage()]} />
 
+{#if !mounted}
+	<Landing />
+{:else}
 <main class="col" class:full>
 	{#if nav.screen === 'train'}
 		<Train />
@@ -49,3 +63,4 @@
 {#if !full}<Tabs />{/if}
 {#if !welcomed || nav.onboarding}<Onboarding ondone={done} />{/if}
 {#if nav.paywall}<Paywall />{/if}
+{/if}

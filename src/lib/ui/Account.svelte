@@ -18,19 +18,11 @@
 	let feedback = $state(false);
 	let legal = $state<'privacy' | 'terms' | null>(null);
 	let contact = $state(false);
-	let importMsg = $state<string | null>(null);
-	let file: HTMLInputElement;
 	async function send(e: Event) {
 		e.preventDefault(); busy = true; err = null;
 		const r = await app.signIn(email.trim()); busy = false;
 		if (r) err = r; else sent = true;
 	}
-	function exportAll() {
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(new Blob([app.exportBlob()], { type: 'application/json' }));
-		a.download = `until-it-sticks-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
-	}
-	async function importFile() { const f = file.files?.[0]; if (!f) return; importMsg = app.importBlob(await f.text()) ? 'Imported and merged.' : 'That file is not a progress export.'; file.value = ''; }
 	const syncWord = $derived(app.user ? app.sync : 'local');
 	const used = $derived(freeUsed(app.gate));
 </script>
@@ -97,8 +89,6 @@
 
 <div class="sec"><h2>Data</h2></div>
 <div class="list">
-	<button class="lrow ic-sep" type="button" onclick={exportAll}><Ic name="download" color="var(--green)" />Export progress<span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => file.click()}><Ic name="upload" color="var(--teal)" />Import a file<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'reset')}><Ic name="review" color="var(--orange)" />Reset progress<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'delete')}><Ic name="trash" color="var(--red)" /><span style="color:var(--red)">Delete my data</span><span class="v">{app.user ? 'server and this device' : 'this device'}</span></button>
 </div>
@@ -109,8 +99,6 @@
 </div>
 <p class="muted small" style="padding:0 4px">Until It Sticks is an independent study aid. It is not affiliated with the Home Office or the official Life in the UK Test, and passing is not guaranteed.</p>
 
-<input type="file" accept="application/json,.json" bind:this={file} onchange={importFile} class="sr" aria-label="Import a progress file" />
-{#if importMsg}<p class="muted small" style="padding:0 4px">{importMsg}</p>{/if}
 {#if feedback}
 	<Sheet label="Send feedback" close="Done" onclose={() => (feedback = false)}>
 		<Feedback skip={false} />

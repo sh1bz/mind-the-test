@@ -58,14 +58,14 @@
 	<div class="ltile learn"><b class="num">🔄 {c.almost + c.learn}</b><span>Still learning</span></div>
 	<div class="ltile slip"><b class="num">⚠️ {c.slip}</b><span>Slipping</span></div>
 </div>
-<div class="card seg">
-	<div class="segbar">
+<div class="card lockcard">
+	<div class="lockbar">
 		<i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i>
 		<i style="width:{(100 * c.almost) / c.total}%;background:#a7e3b8"></i>
 		<i style="width:{(100 * c.learn) / c.total}%;background:#bcdcff"></i>
 		<i style="width:{(100 * c.slip) / c.total}%;background:var(--red)"></i>
 	</div>
-	<div class="segcap"><span><b class="num">{c.stuck}</b> of {c.total} locked in</span><span class="num">{c.total - c.stuck} to go</span></div>
+	<div class="lockcap"><span><b class="num">{c.stuck}</b> of {c.total} locked in</span><span class="num">{c.total - c.stuck} to go</span></div>
 </div>
 
 {#if nav.topic !== null}
@@ -110,9 +110,9 @@
 	.ltile.good b { color: var(--green); }
 	.ltile.learn b { color: var(--blue); }
 	.ltile.slip b { color: var(--orange); }
-	.card.seg { margin-top: 12px; }
-	.segbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
-	.segbar i { display: block; height: 100%; }
-	.segcap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
-	.segcap b { color: var(--ink); }
+	.card.lockcard { margin-top: 12px; }
+	.lockbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
+	.lockbar i { display: block; height: 100%; }
+	.lockcap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
+	.lockcap b { color: var(--ink); }
 </style>

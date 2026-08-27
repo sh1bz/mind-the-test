@@ -1,12 +1,12 @@
 <script lang="ts">
 	// The unlock sheet. 'gate': the free part is used up. 'thanks': back from Stripe, confirm the entitlement.
-	import { env } from '$env/dynamic/public';
+	import { PUBLIC_PAY_LINK } from '$env/static/public';
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { QUESTIONS } from '$lib/content';
 	import { FREE_QUESTIONS, FREE_MOCKS, PRICE } from '$lib/engine/gate';
 	import Sheet from './Sheet.svelte';
-	const LINK = env.PUBLIC_PAY_LINK ?? '';
+	const LINK = PUBLIC_PAY_LINK;
 	const rest = QUESTIONS.length - FREE_QUESTIONS;
 	let email = $state(app.user?.email ?? '');
 	let sent = $state(false);

@@ -1,14 +1,15 @@
-// Google Ads conversion tracking. Inert until PUBLIC_GADS_ID is set at build time.
+// Google Ads conversion tracking. Values are inlined at build time (like PUBLIC_PAY_LINK), so a
+// cached env.js can never hide them; empty PUBLIC_GADS_ID makes everything a no-op.
 // Consent Mode v2 with everything denied by default: no cookies are written, the tag sends
 // cookieless pings and Ads models the conversions. No banner needed for that.
 import { browser } from '$app/environment';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_GADS_ID, PUBLIC_GADS_UNLOCK, PUBLIC_GADS_START, PUBLIC_GADS_DATE } from '$env/static/public';
 
-const ID = env.PUBLIC_GADS_ID ?? '';
+const ID = PUBLIC_GADS_ID;
 const LABEL: Record<Kind, string | undefined> = {
-	unlock: env.PUBLIC_GADS_UNLOCK,
-	start: env.PUBLIC_GADS_START,
-	date: env.PUBLIC_GADS_DATE
+	unlock: PUBLIC_GADS_UNLOCK,
+	start: PUBLIC_GADS_START,
+	date: PUBLIC_GADS_DATE
 };
 export type Kind = 'unlock' | 'start' | 'date';
 export const adsEnabled = !!ID;

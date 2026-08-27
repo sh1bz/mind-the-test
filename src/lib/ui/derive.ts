@@ -2,14 +2,14 @@
 import { QUESTIONS, TOPICS, BY_ID, type Question } from '$lib/content';
 import { isDue, isKnown, isNew, isWeak, isSlipping, isAlmostStuck, type ItemState, DAY } from '$lib/engine/scheduler';
 const HOUR = 3_600_000;
-import { newPerDay, readiness, EXAM_PASS } from '$lib/engine/readiness';
+import { readiness, EXAM_PASS } from '$lib/engine/readiness';
 import type { Progress } from '$lib/store/progress';
 
 export type StateOf = (id: string) => ItemState;
 
 export const pool = (topic: number | null) => (topic === null ? QUESTIONS : QUESTIONS.filter((q) => q.t === topic));
 
-export function plan(p: Progress, state: StateOf, now: number, topic: number | null = null) {
+export function plan(_p: Progress, state: StateOf, now: number, topic: number | null = null) {
 	const qs = pool(topic);
 	let due = 0, unseen = 0, weak = 0, soon = 0, soonAt = Infinity;
 	for (const q of qs) {
@@ -18,10 +18,8 @@ export function plan(p: Progress, state: StateOf, now: number, topic: number | n
 		// Misses come back in minutes: count them so a fresh session does not read as "0 to review".
 		if (s.seen > 0 && s.due > now && s.due <= now + HOUR) { soon++; soonAt = Math.min(soonAt, s.due); }
 	}
-	const exam = p.exam ? Date.parse(p.exam + 'T09:00:00') : undefined;
-	const fresh = Math.min(unseen, newPerDay(unseen, exam && exam > now ? exam : undefined, now));
-	const minutes = Math.max(1, Math.round(((due + fresh) * 25) / 60));
-	return { due, fresh, weak, unseen, minutes, soon, soonAt };
+	// No daily ration: "new" offers every unseen question — you decide how many to take on.
+	return { due, fresh: unseen, weak, unseen, soon, soonAt };
 }
 
 export function topicStats(state: StateOf) {

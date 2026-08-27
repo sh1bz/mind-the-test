@@ -26,18 +26,16 @@
 	);
 	const left = $derived(daysLeft(app.exam, now));
 	const topicName = $derived(nav.topic === null ? '' : TOPICS[nav.topic]);
-	const title = $derived(nav.topic === null ? "Today's session" : `${topicName} session`);
+	const title = $derived(nav.topic === null ? 'Training' : `${topicName} practice`);
 	const nothing = $derived(p.due + p.fresh === 0);
-	const today = new Date(now).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 	function start(kind: 'smart' | 'review' | 'new' | 'weak') {
 		const names = { smart: title, review: 'Review', new: 'New questions', weak: 'Ones you keep missing' };
 		nav.startTrain({ kind, topic: nav.topic, title: names[kind] });
 	}
 </script>
 
-<div class="datehd">{today}</div>
 <div class="row">
-	<h1 class="large">Today</h1>
+	<h1 class="large">Home</h1>
 	{#if app.exam && left !== undefined}
 		<button class="chip tint num" type="button" onclick={() => nav.go('account')}>Test {left <= 0 ? 'today' : `in ${left} day${left === 1 ? '' : 's'}`}</button>
 	{:else}
@@ -71,21 +69,20 @@
 	<div class="row"><span class="chip on"><span class="dot" style="background:#fff"></span>{topicName} only</span><button class="chip" type="button" onclick={() => (nav.topic = null)}>Clear</button></div>
 {/if}
 
-<div class="sec"><h2>Today's plan</h2>{#if nothing}<span class="muted small">All caught up</span>{/if}</div>
-<div class="list">
-	<button class="lrow ic-sep" type="button" onclick={() => start('review')} disabled={!p.due}><Ic name="review" color="var(--blue)" />Questions to review{#if !p.due && p.soon}<span class="v num">{p.soon} back in {fmtIn(p.soonAt - now)}</span>{:else}<b class="v ink num">{p.due}</b>{/if}<span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => start('new')} disabled={!p.fresh}><Ic name="plus" color="var(--green)" />New questions<b class="v ink num">{p.fresh}</b><span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: nav.topic, ids: slipIds, title: 'Fix slipping' })} disabled={!slipIds.length}><Ic name="warn" color="var(--orange)" />Fix what’s slipping<b class="v ink num">{slipIds.length}</b><span class="chev">›</span></button>
-	<div class="lrow"><Ic name="clock" color="var(--indigo)" />Time needed<span class="v num">{nothing ? '—' : `about ${p.minutes} min`}</span></div>
-</div>
-
 {#if nothing}
 	<div class="note">All caught up{p.unseen ? '' : ' — every question seen'}. {p.weak ? `${p.weak} you keep missing are waiting.` : 'Come back when reviews are due, or run a mock.'}</div>
 	{#if p.weak}<button class="big" type="button" onclick={() => start('weak')}>Drill the ones you keep missing <span class="arrow">›</span></button>{/if}
 {:else}
-	<button class="big" type="button" onclick={() => start('smart')}>Start {nav.topic === null ? "today's session" : `${topicName} session`} <span class="arrow">›</span></button>
+	<button class="big" type="button" onclick={() => start('smart')}>Continue training <span class="arrow">›</span></button>
 {/if}
 <button class="big alt" type="button" onclick={() => nav.startMock(false)}><span>Mock exam<small>{EXAM_QUESTIONS} questions · {EXAM_MINUTES} min · pass {EXAM_PASS}</small></span><span class="arrow">›</span></button>
+
+<div class="sec"><h2>Practice</h2><span class="muted small">pick what to work on</span></div>
+<div class="list">
+	<button class="lrow ic-sep" type="button" onclick={() => start('review')} disabled={!p.due}><Ic name="review" color="var(--blue)" />Review due{#if !p.due && p.soon}<span class="v num">{p.soon} back in {fmtIn(p.soonAt - now)}</span>{:else}<b class="v ink num">{p.due}</b>{/if}<span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => start('new')} disabled={!p.fresh}><Ic name="plus" color="var(--green)" />New questions<b class="v ink num">{p.fresh}</b><span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: nav.topic, ids: slipIds, title: 'Fix slipping' })} disabled={!slipIds.length}><Ic name="warn" color="var(--orange)" />Fix what’s slipping<b class="v ink num">{slipIds.length}</b><span class="chev">›</span></button>
+</div>
 
 <div class="sec"><h2>Topics</h2><span class="muted small">tap to focus</span></div>
 <div class="list">

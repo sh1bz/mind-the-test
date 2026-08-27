@@ -31,10 +31,10 @@
 				<div class="lrow"><b class="n ok">3</b>Three in a row<span class="v">it sticks</span></div>
 			</div>
 		{:else if step === 1}
-			<h3>One short session a day</h3>
-			<p>Everything is built from what you can recall right now, not from how many pages you have read.</p>
+			<h3>Train until it sticks</h3>
+			<p>Everything is built from what you can recall right now, not from how many pages you have read. Do as much or as little as you want.</p>
 			<div class="hlist">
-				<div><Ic name="review" /><span><b>Today's plan</b> — questions due for review plus new ones, sized to your test date. About 15 minutes.</span></div>
+				<div><Ic name="review" /><span><b>Practice</b> — questions due for review plus any new ones. You choose how many to take on.</span></div>
 				<div><Ic name="map" color="var(--green)" /><span><b>The Map</b> — every miss links to its place in the handbook, so you learn the fact, not the letter.</span></div>
 				<div><Ic name="trophy" color="var(--orange)" /><span><b>Mock exams</b> — the real format: 24 questions, 45 minutes, pass at 18.</span></div>
 				<div><Ic name="heart" color="var(--indigo)" /><span><b>Readiness</b> — how much of the whole bank you have locked in.</span></div>

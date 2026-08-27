@@ -2,7 +2,7 @@
 	import { nav, type Tab } from '$lib/ui/nav.svelte';
 	import { ICONS } from './icons';
 	const items: { id: Tab; label: string; svg: string }[] = [
-		{ id: 'today', label: 'Today', svg: ICONS.house },
+		{ id: 'today', label: 'Home', svg: ICONS.house },
 		{ id: 'map', label: 'Map', svg: ICONS.map },
 		{ id: 'questions', label: 'Questions', svg: ICONS.list },
 		{ id: 'account', label: 'Account', svg: ICONS.person }

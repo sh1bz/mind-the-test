@@ -222,7 +222,7 @@
 	{/if}
 {:else}
 	<h1 class="large">Nothing to train here.</h1><p class="muted">Every question in this set is known or not due yet.</p>
-	<button class="big ghost" type="button" onclick={() => nav.home()}>Back to Today</button>
+	<button class="big ghost" type="button" onclick={() => nav.home()}>Back to home</button>
 {/if}
 
 {#if sheet && link}

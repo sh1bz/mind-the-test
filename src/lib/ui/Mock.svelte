@@ -75,7 +75,7 @@
 	{#if result.wrong.length}
 		<button class="big alt" type="button" onclick={() => { ondone?.(); nav.startTrain({ kind: 'custom', topic: null, ids: result!.wrong, title: 'Missed in the mock' }); }}>Review the {result.wrong.length} you missed <span class="arrow">›</span></button>
 	{/if}
-	<button class="big" type="button" onclick={leave}>{nav.placement ? 'Start learning' : 'Back to Today'} <span class="arrow">›</span></button>
+	<button class="big" type="button" onclick={leave}>{nav.placement ? 'Start learning' : 'Back to home'} <span class="arrow">›</span></button>
 {:else}
 	{#if leaving}
 		<Sheet label="Leave the mock?" close="Keep going" onclose={() => (leaving = false)}>

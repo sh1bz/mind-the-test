@@ -37,4 +37,4 @@
 	</div>
 </div>
 <button class="big" type="button" style="margin-top:auto" onclick={() => nav.startTrain(nav.train)}>Keep going <span class="arrow">›</span></button>
-<button class="big ghost" type="button" onclick={() => nav.home()}>Back to Today</button>
+<button class="big ghost" type="button" onclick={() => nav.home()}>Back to home</button>

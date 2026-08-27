@@ -92,5 +92,5 @@ export const HOW_IT_WORKS = [
 	{ n: '1', t: 'Answer questions', d: `One short session a day, about 15 minutes, built from what you can recall right now. A wrong answer comes back 8–12 cards later in the same session.` },
 	{ n: '2', t: 'Misses come back', d: 'Right again the same session, then the next day, then three days later. Three in a row and it sticks. You spend time only on what you do not know yet.' },
 	{ n: '3', t: 'Learn the fact, not the letter', d: 'Every question links to its place in the handbook. One tap from a wrong answer opens the revision card, so you learn why.' },
-	{ n: '4', t: 'Sit real mock exams', d: `The real format: ${TEST.questions} questions, ${TEST.minutes} minutes, pass at ${TEST.pass}. Your readiness score is your pass chance from what you can recall today.` }
+	{ n: '4', t: 'Sit real mock exams', d: `The real format: ${TEST.questions} questions, ${TEST.minutes} minutes, pass at ${TEST.pass}. Your readiness score is the share of the bank you have locked in.` }
 ];

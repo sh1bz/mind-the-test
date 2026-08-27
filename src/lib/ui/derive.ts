@@ -105,7 +105,7 @@ export function milestones(p: Progress, state: StateOf, now: number): Milestone[
 		{ id: 'k100', label: '100 known', hit: k >= 100 },
 		{ id: 'mock1', label: passed.length ? `First mock passed · ${passed[0].score}/${passed[0].total}` : 'First mock passed', hit: passed.length > 0 },
 		{ id: 'k200', label: '200 known', hit: k >= 200 },
-		{ id: 'p80', label: '80% pass chance', hit: r.passProb >= 0.8 },
+		{ id: 'p80', label: 'Ready to pass', hit: r.passProb >= 0.8 },
 		{ id: 'mock3', label: 'Three mocks passed in a row', hit: lastThree.length === 3 && lastThree.every((m) => m.score >= EXAM_PASS) },
 		{ id: 'k300', label: '300 known', hit: k >= 300 }
 	];

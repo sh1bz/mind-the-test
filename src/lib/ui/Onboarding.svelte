@@ -37,7 +37,7 @@
 				<div><Ic name="review" /><span><b>Today's plan</b> — questions due for review plus new ones, sized to your test date. About 15 minutes.</span></div>
 				<div><Ic name="map" color="var(--green)" /><span><b>The Map</b> — every miss links to its place in the handbook, so you learn the fact, not the letter.</span></div>
 				<div><Ic name="trophy" color="var(--orange)" /><span><b>Mock exams</b> — the real format: 24 questions, 45 minutes, pass at 18.</span></div>
-				<div><Ic name="heart" color="var(--indigo)" /><span><b>Readiness</b> — your pass chance, from what you can recall today.</span></div>
+				<div><Ic name="heart" color="var(--indigo)" /><span><b>Readiness</b> — how much of the whole bank you have locked in.</span></div>
 			</div>
 		{:else}
 			<h3>When is your test?</h3>

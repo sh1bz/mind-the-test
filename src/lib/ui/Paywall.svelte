@@ -47,7 +47,7 @@
 				{/if}
 			{:else if sent}
 				<h3>Check your email</h3>
-				<p>We sent a link to <b>{email}</b>. Open it on this device and everything unlocks. Your progress is kept.</p>
+				<p>We sent a link to <b>{email}</b>. Open it on any device and everything unlocks. Your progress is kept.</p>
 				<button class="big ghost" type="button" onclick={() => (sent = false)}>Use a different email</button>
 			{:else}
 				<h3>Thank you. Sign in to unlock</h3>

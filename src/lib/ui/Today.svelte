@@ -37,7 +37,7 @@
 <div class="datehd">{today}</div>
 <div class="row">
 	<h1 class="large">Today</h1>
-	{#if dayStreak > 0}<span class="chip tint daystreak">🔥 {dayStreak} day{dayStreak === 1 ? '' : 's'}</span>{/if}
+	{#if dayStreak > 0}<span class="chip tint num">🔥 {dayStreak} day{dayStreak === 1 ? '' : 's'}</span>{/if}
 	{#if app.exam && left !== undefined}
 		<button class="chip tint num" type="button" onclick={() => nav.go('account')}>Test {left <= 0 ? 'today' : `in ${left} day${left === 1 ? '' : 's'}`}</button>
 	{:else}
@@ -62,12 +62,7 @@
 	<div class="ltile slip"><b class="num">⚠️ {c.slip}</b><span>Slipping</span></div>
 </div>
 <div class="card lockcard">
-	<div class="lockbar">
-		<i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i>
-		<i style="width:{(100 * c.almost) / c.total}%;background:#a7e3b8"></i>
-		<i style="width:{(100 * c.learn) / c.total}%;background:#bcdcff"></i>
-		<i style="width:{(100 * c.slip) / c.total}%;background:var(--red)"></i>
-	</div>
+	<div class="lockbar"><i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i></div>
 	<div class="lockcap"><span><b class="num">{c.stuck}</b> of {c.total} locked in</span><span class="num">{c.total - c.stuck} to go</span></div>
 </div>
 
@@ -103,7 +98,6 @@
 </div>
 
 <style>
-	.daystreak { color: var(--orange); font-weight: 700; }
 	.verdict { display: flex; flex-direction: column; justify-content: center; }
 	.verdict h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
 	.verdict p { font-size: 14px; line-height: 1.35; margin: 0; }

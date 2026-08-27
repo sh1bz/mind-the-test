@@ -33,6 +33,10 @@ export function topicStats(state: StateOf) {
 }
 
 export const known = (state: StateOf) => QUESTIONS.filter((q) => isKnown(state(q.id))).length;
+/** Mastered — will stick (same rule as known). */
+export const sticky = known;
+/** Answered at least once, all-time. */
+export const answered = (state: StateOf) => QUESTIONS.filter((q) => !isNew(state(q.id))).length;
 /** Seen at least once but not yet known. */
 export const learning = (state: StateOf) => QUESTIONS.filter((q) => { const s = state(q.id); return !isNew(s) && !isKnown(s); }).length;
 export const ready = (state: StateOf, now: number) => readiness(QUESTIONS.map((q) => state(q.id)), now);

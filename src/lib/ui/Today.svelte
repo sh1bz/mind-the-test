@@ -2,7 +2,7 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { TOPIC_COLORS, TOPICS } from '$lib/content';
-	import { plan, topicStats, known, learning, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
+	import { plan, topicStats, sticky, answered, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
 	import { streakDays } from '$lib/store/progress';
 	import { EXAM_PASS, EXAM_QUESTIONS, EXAM_MINUTES } from '$lib/engine/readiness';
 	import { QUESTIONS } from '$lib/content';
@@ -15,8 +15,8 @@
 	const r = $derived(ready(st, now));
 	const p = $derived(plan(app.progress, st, now, nav.topic));
 	const lines = $derived(topicStats(st));
-	const k = $derived(known(st));
-	const l = $derived(learning(st));
+	const k = $derived(sticky(st));
+	const a = $derived(answered(st));
 	const streak = $derived(streakDays(app.progress.days, now));
 	const mocks = $derived(app.progress.mocks.slice(-3).map((m) => m.score));
 	const left = $derived(daysLeft(app.exam, now));
@@ -45,8 +45,8 @@
 	<div class="hero">
 		<Gauge value={r.passProb} />
 		<div class="stats">
-			<div><b class="num">{k} <span class="muted" style="font-size:13px;font-weight:500">/ {QUESTIONS.length}</span></b>Known</div>
-			<div><b class="num">{l}</b>Learning</div>
+			<div><b class="num">{k} <span class="muted" style="font-size:13px;font-weight:500">/ {a}</span></b>Sticky</div>
+			<div><b class="num">{a} <span class="muted" style="font-size:13px;font-weight:500">/ {QUESTIONS.length}</span></b>Answered</div>
 			<div><b class="num">{streak}</b>Day streak</div>
 			<div><b class="num">{mocks.length ? mocks.join(' · ') : '—'}</b>Last mocks</div>
 		</div>

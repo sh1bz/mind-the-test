@@ -1,18 +1,19 @@
 <script lang="ts">
 	// The feedback card: shown once, inline on the first mock result. NPS 0–10 plus one free-text line.
 	import { app } from '$lib/store/app.svelte';
+	let { skip = true }: { skip?: boolean } = $props(); // the Account sheet has its own close button
 	let score = $state<number | null>(null);
 	let text = $state('');
 	let sent = $state(false);
 	function send() { sent = true; app.sendFeedback(score, text.trim()); }
-	function skip() { app.sendFeedback(null, ''); }
+	function skipIt() { app.sendFeedback(null, ''); }
 </script>
 
 {#if sent}
 	<div class="note">Thank you. That helps.</div>
 {:else}
 	<div class="card fb" role="group" aria-label="Feedback">
-		<div class="hd">How likely are you to recommend this to a friend?<button class="chip" type="button" onclick={skip}>Skip</button></div>
+		<div class="hd">How likely are you to recommend this to a friend?{#if skip}<button class="chip" type="button" onclick={skipIt}>Skip</button>{/if}</div>
 		<div class="scale" role="radiogroup" aria-label="0 = not at all, 10 = very likely">
 			{#each Array.from({ length: 11 }, (_, i) => i) as n (n)}
 				<button class="chip num" class:on={score === n} type="button" role="radio" aria-checked={score === n} onclick={() => (score = n)}>{n}</button>

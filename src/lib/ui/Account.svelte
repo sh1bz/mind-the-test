@@ -6,12 +6,14 @@
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
 	import Sheet from './Sheet.svelte';
+	import Feedback from './Feedback.svelte';
 	let email = $state('');
 	let sent = $state(false);
 	let err = $state<string | null>(null);
 	let busy = $state(false);
 	let editDate = $state(false);
 	let confirm = $state<'reset' | 'delete' | null>(null);
+	let feedback = $state(false);
 	let importMsg = $state<string | null>(null);
 	let file: HTMLInputElement;
 	async function send(e: Event) {
@@ -83,6 +85,7 @@
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={() => nav.showOnboarding()}><Ic name="book" color="var(--indigo)" />How it works<span class="chev">›</span></button>
 	<a class="lrow ic-sep" href="/life-in-the-uk-test/" data-sveltekit-reload style="text-decoration:none"><Ic name="flag" color="var(--blue)" />About the test<span class="chev">›</span></a>
+	<button class="lrow ic-sep" type="button" onclick={() => (feedback = true)}><Ic name="mail" color="var(--teal)" />Send feedback<span class="chev">›</span></button>
 </div>
 
 <div class="sec"><h2>Data</h2></div>
@@ -94,6 +97,11 @@
 </div>
 <input type="file" accept="application/json,.json" bind:this={file} onchange={importFile} class="sr" aria-label="Import a progress file" />
 {#if importMsg}<p class="muted small" style="padding:0 4px">{importMsg}</p>{/if}
+{#if feedback}
+	<Sheet label="Send feedback" close="Done" onclose={() => (feedback = false)}>
+		<Feedback skip={false} />
+	</Sheet>
+{/if}
 {#if confirm === 'reset'}
 	<Sheet label="Reset progress" close="Cancel" onclose={() => (confirm = null)}>
 		<div class="note">Start again from zero? Your test date stays.</div>

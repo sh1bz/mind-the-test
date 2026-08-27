@@ -49,7 +49,7 @@
 	<div class="hd"><Ic name="heart" color="var(--red)" sm />Readiness{#if app.exam}<span class="muted small num" style="margin-left:auto">Test {fmtDay(app.exam)}</span>{/if}</div>
 	<div class="hero">
 		<Gauge value={r.passProb} />
-		<div class="verdict">
+		<div class="rverd">
 			<h4 style="color:{v.tone}">{v.label}</h4>
 			<p class="muted">{readySub}</p>
 		</div>
@@ -99,9 +99,9 @@
 </div>
 
 <style>
-	.verdict { display: flex; flex-direction: column; justify-content: center; }
-	.verdict h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
-	.verdict p { font-size: 14px; line-height: 1.35; margin: 0; }
+	.rverd { display: flex; flex-direction: column; justify-content: center; }
+	.rverd h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
+	.rverd p { font-size: 14px; line-height: 1.35; margin: 0; }
 	.loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
 	.ltile { background: var(--card); border-radius: 14px; padding: 12px 10px; }
 	.ltile b { display: flex; align-items: center; gap: 4px; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }

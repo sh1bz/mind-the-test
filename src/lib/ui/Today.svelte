@@ -3,6 +3,7 @@
 	import { nav } from '$lib/ui/nav.svelte';
 	import { TOPIC_COLORS, TOPICS } from '$lib/content';
 	import { plan, topicStats, stateCounts, verdict, slippingIds, ready, daysLeft, fmtDay, fmtIn } from '$lib/ui/derive';
+	import { streakDays } from '$lib/store/progress';
 	import { EXAM_PASS, EXAM_QUESTIONS, EXAM_MINUTES } from '$lib/engine/readiness';
 	import { TOPIC_ICONS } from './icons';
 	import Gauge from './Gauge.svelte';
@@ -14,6 +15,7 @@
 	const p = $derived(plan(app.progress, st, now, nav.topic));
 	const lines = $derived(topicStats(st));
 	const c = $derived(stateCounts(st));
+	const dayStreak = $derived(streakDays(app.progress.days, now));
 	const v = $derived(verdict(r.passProb));
 	const slipIds = $derived(slippingIds(st, nav.topic));
 	const readySub = $derived(
@@ -35,6 +37,7 @@
 <div class="datehd">{today}</div>
 <div class="row">
 	<h1 class="large">Today</h1>
+	{#if dayStreak > 0}<span class="chip tint daystreak">🔥 {dayStreak} day{dayStreak === 1 ? '' : 's'}</span>{/if}
 	{#if app.exam && left !== undefined}
 		<button class="chip tint num" type="button" onclick={() => nav.go('account')}>Test {left <= 0 ? 'today' : `in ${left} day${left === 1 ? '' : 's'}`}</button>
 	{:else}
@@ -100,6 +103,7 @@
 </div>
 
 <style>
+	.daystreak { color: var(--orange); font-weight: 700; }
 	.verdict { display: flex; flex-direction: column; justify-content: center; }
 	.verdict h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
 	.verdict p { font-size: 14px; line-height: 1.35; margin: 0; }

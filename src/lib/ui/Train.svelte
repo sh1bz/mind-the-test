@@ -42,6 +42,19 @@
 	let correct = $state(false);
 	let done = $state(0);
 	let streak = $state(0);
+	let best = $state(0);
+	let acc = $state({ ok: 0, n: 0 });
+	let cheer = $state<string | null>(null);
+	let popKey = $state(0);
+	let cheerTimer: ReturnType<typeof setTimeout>;
+	function cheerFor(n: number): string | null {
+		if (n === 3) return '🔥 3 in a row!';
+		if (n === 5) return '🔥 On fire — 5!';
+		if (n === 10) return '⚡ 10 straight!';
+		if (n > 10 && n % 5 === 0) return `🔥 ${n} in a row!`;
+		return null;
+	}
+	function showCheer(m: string) { cheer = m; clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1400); }
 	let sheet = $state<string | null>(null);
 	const multi = $derived(!!q && q.c.length > 1);
 	const flagged = $derived(!!q && !!st(q.id).flag);
@@ -80,7 +93,8 @@
 			app.recordMiss(q.id, wrong);
 			navigator.vibrate?.(60);
 		} else mixup = null;
-		graded = true; done = session.done; streak = session.streak;
+		graded = true; done = session.done; streak = session.streak; best = session.best; acc = { ...session.firstTry };
+		if (correct) { popKey++; const m = cheerFor(streak); if (m) showCheer(m); }
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
 	function finish() {
@@ -109,8 +123,10 @@
 	<div class="navrow">
 		<button class="xbtn" type="button" aria-label="End session" onclick={finish}>✕</button>
 		<span class="pbar"><div style="width:{pctDone}%"></div></span>
-		<span class="muted num small">{done} done · {streak} streak</span>
+		{#key popKey}<span class="flame" class:hot={streak >= 3} aria-label="{streak} in a row">🔥 {streak}</span>{/key}
 	</div>
+	<div class="runbar" aria-hidden="true"><span>{done}/{goal}</span><span>·</span><span>{acc.ok}/{acc.n} first try</span><span>·</span><span>best 🔥{best}</span></div>
+	{#if cheer}<div class="cheer" role="status">{cheer}</div>{/if}
 	<div class="row">
 		<span class="chip" style="background:var(--{TOPIC_COLORS[q.t]});color:#fff"><span class="dot" style="background:#fff"></span>{TOPICS[q.t]}</span>
 		<button class="chip" class:on={flagged} type="button" aria-pressed={flagged} onclick={() => app.toggleFlag(q!.id)}>{flagged ? 'Flagged' : 'Flag'} <span class="key">F</span></button>
@@ -153,3 +169,18 @@
 		<MapCardView card={link.card} section={link.section} />
 	</Sheet>
 {/if}
+
+<style>
+	.flame { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; }
+	.flame.hot { color: var(--orange); background: var(--warnbg); animation: flamepop 0.38s cubic-bezier(0.2, 0.8, 0.3, 1.3); }
+	@keyframes flamepop { 0% { transform: scale(1); } 42% { transform: scale(1.38); } 100% { transform: scale(1); } }
+	.runbar { display: flex; gap: 8px; justify-content: center; color: var(--muted); font-size: 12px; font-weight: 600; margin: -4px 0 8px; font-variant-numeric: tabular-nums; }
+	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 20; background: var(--orange); color: #fff; font-weight: 800; font-size: 18px; letter-spacing: -0.2px; padding: 11px 20px; border-radius: 14px; box-shadow: 0 14px 34px -10px rgba(255, 149, 0, 0.65); pointer-events: none; animation: cheerpop 1.4s ease forwards; }
+	@keyframes cheerpop {
+		0% { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.8); }
+		14% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.06); }
+		28% { transform: translateX(-50%) translateY(0) scale(1); }
+		82% { opacity: 1; }
+		100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(1); }
+	}
+</style>

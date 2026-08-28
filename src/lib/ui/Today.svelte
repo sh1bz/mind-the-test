@@ -99,7 +99,7 @@
 	.rverd { display: flex; flex-direction: column; justify-content: center; }
 	.rverd h4 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin: 0 0 3px; }
 	.rverd p { font-size: 14px; line-height: 1.35; margin: 0; }
-	.loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+	.loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 	.ltile { background: var(--card); border-radius: 14px; padding: 12px 10px; }
 	.ltile b { display: flex; align-items: center; gap: 4px; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
 	.ltile span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 6px; white-space: nowrap; }
@@ -107,7 +107,6 @@
 	.ltile.learn b { color: var(--blue); }
 	.ltile.slip b { color: var(--orange); }
 	.ltile.streak b { color: var(--orange); }
-	.card.lockcard { margin-top: 12px; }
 	.lockbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
 	.lockbar i { display: block; height: 100%; }
 	.lockcap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }

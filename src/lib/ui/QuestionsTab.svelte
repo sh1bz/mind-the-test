@@ -7,7 +7,7 @@
 	const now = Date.now();
 	const st = (id: string) => app.item(id);
 	type F = 'all' | 'wrong' | 'flagged' | 'learning' | 'unseen' | 'known';
-	const filters: { id: F; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'wrong', label: 'Wrong' }, { id: 'flagged', label: 'Flagged' }, { id: 'learning', label: 'Learning' }, { id: 'unseen', label: 'Unseen' }, { id: 'known', label: 'Stuck' }];
+	const filters: { id: F; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'wrong', label: 'Wrong' }, { id: 'flagged', label: 'Flagged' }, { id: 'learning', label: 'Learning' }, { id: 'unseen', label: 'Unseen' }, { id: 'known', label: 'Sticky' }];
 	let f = $state<F>('all');
 	let topic = $state<number | null>(null);
 	let search = $state('');
@@ -30,7 +30,7 @@
 	<button class="chip" class:on={topic === null} type="button" onclick={() => (topic = null)}>All topics</button>
 	{#each TOPICS as name, t (t)}<button class="chip" class:on={topic === t} type="button" aria-pressed={topic === t} onclick={() => (topic = topic === t ? null : t)}><span class="dot" style="background:{topic === t ? '#fff' : `var(--${TOPIC_COLORS[t]})`}"></span>{name}</button>{/each}
 </div>
-<div class="sec"><h2 class="num">{list.length} question{list.length === 1 ? '' : 's'}</h2><span class="muted small num">{counts.known} stuck · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</span></div>
+<div class="sec"><h2 class="num">{list.length} question{list.length === 1 ? '' : 's'}</h2><span class="muted small num">{counts.known} sticky · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</span></div>
 {#if list.length}
 	<button class="big" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: null, ids: list.map((q) => q.id), title: `Test ${list.length}` })}>Test these {list.length} <span class="arrow">›</span></button>
 {/if}

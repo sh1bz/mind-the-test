@@ -82,7 +82,7 @@ export const pct = (x: number) => `${Math.round(x * 100)}%`;
 export function dueBadge(s: ItemState, now: number): { text: string; cls: string } {
 	if (isNew(s)) return { text: 'new', cls: '' };
 	if (isSlipping(s)) return { text: 'slipping', cls: 'w' };
-	if (isKnown(s)) return { text: 'stuck', cls: 'k' };
+	if (isKnown(s)) return { text: 'sticky', cls: 'k' };
 	if (isAlmostStuck(s)) return { text: 'almost', cls: '' };
 	if (s.due <= now) return { text: 'due', cls: '' };
 	return { text: fmtIn(s.due - now), cls: '' };

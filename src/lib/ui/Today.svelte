@@ -55,7 +55,7 @@
 </div>
 
 <div class="loop">
-	<div class="ltile good"><b class="num">🧠 {c.stuck}</b><span>Stuck</span></div>
+	<div class="ltile good"><b class="num">🧠 {c.stuck}</b><span>Sticky</span></div>
 	<div class="ltile learn"><b class="num">🔄 {c.almost + c.learn}</b><span>Still learning</span></div>
 	<div class="ltile slip"><b class="num">⚠️ {c.slip}</b><span>Slipping</span></div>
 	<div class="ltile streak"><b class="num">🔥 {dayStreak}</b><span>Day streak</span></div>

@@ -71,7 +71,7 @@
 			<div class="list flow">
 				<div class="lrow"><span class="n ok">✓</span>All {QUESTIONS.length} questions</div>
 				<div class="lrow"><span class="n ok">✓</span>Unlimited mocks</div>
-				<div class="lrow"><span class="n ok">✓</span>Pass chance and test-day plan</div>
+				<div class="lrow"><span class="n ok">✓</span>Readiness score — know when you're ready</div>
 			</div>
 			<p class="price">{PRICE}<small>once, for good</small></p>
 			<p class="pitch">The official test costs £50. Prepare properly for {PRICE}.</p>

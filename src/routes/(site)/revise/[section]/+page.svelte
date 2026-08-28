@@ -8,7 +8,7 @@
 	const s = $derived(data.section);
 	const page = $derived(sectionPage(s));
 	const others = $derived(MAP.filter((x) => x.id !== s.id));
-	const updated = '2026-08-27';
+	const updated = '2026-08-28';
 </script>
 
 <Seo title={page.title} description={page.description} path={page.path} type="article" jsonld={[webpage(page), article(page, updated), breadcrumb([{ name: 'Home', path: '/' }, { name: 'Revision notes', path: '/revise/' }, { name: s.title, path: page.path }])]} />

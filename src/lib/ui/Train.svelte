@@ -51,6 +51,7 @@
 	let popKey = $state(0);
 	let lockKey = $state(0);
 	let cheerTone = $state('var(--orange)');
+	let cheerPos = $state<{ x: number; y: number } | null>(null);
 	const career = $derived(stateCounts(st));
 	let cheerTimer: ReturnType<typeof setTimeout>;
 	const reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -64,6 +65,8 @@
 	}
 	function showCheer(msg: string, tier: number, tone = 'var(--orange)') {
 		cheer = msg; cheerTier = tier; cheerTone = tone;
+		// Pop the message just above the button that was tapped; keyboard picks fall back to the top.
+		cheerPos = origin ? { x: Math.min(Math.max(origin.x, 100), innerWidth - 100), y: Math.max(origin.y - 56, 60) } : null;
 		clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1500);
 		burst(tier, tone);
 	}
@@ -187,7 +190,7 @@
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
-	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}">{cheer}</div>{/if}
+	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}{cheerPos ? `;left:${cheerPos.x}px;top:${cheerPos.y}px` : ''}">{cheer}</div>{/if}
 	<div class="qhead">
 		<span class="tico" style="--tc:var(--{TOPIC_COLORS[q.t]})"><Ic name={TOPIC_ICONS[q.t]} color="var(--tc)" /></span>
 		<p class="qtext">{q.q}</p>

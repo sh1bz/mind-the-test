@@ -68,47 +68,82 @@
 		// Pop the message just above the button that was tapped; keyboard picks fall back to the top.
 		cheerPos = origin ? { x: Math.min(Math.max(origin.x, 100), innerWidth - 100), y: Math.max(origin.y - 56, 60) } : null;
 		clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1500);
-		burst(tier, tone);
+		// One dial drives the whole show: a green lock-in is a steady mid burst; a streak scales
+		// with its length, so 3 is a spark and 20+ fills the screen with fireworks and glitter.
+		const intensity = tone.includes('green') ? 0.5 : Math.min(1.5, 0.28 + streak * 0.06);
+		burst(intensity, tone);
 	}
-	type P = { x: number; y: number; vx: number; vy: number; g: number; size: number; rot: number; vrot: number; color: string; life: number; decay: number; shape: 0 | 1 };
+	// shape: 0 rect, 1 disc, 2 sparkle (a glinting cross); flick makes it twinkle as it drifts.
+	type P = { x: number; y: number; vx: number; vy: number; g: number; size: number; rot: number; vrot: number; color: string; life: number; decay: number; shape: 0 | 1 | 2; flick: boolean };
 	let cvs = $state<HTMLCanvasElement>();
 	let parts: P[] = [];
 	let raf = 0;
+	let frame = 0;
+	let fwTimers: ReturnType<typeof setTimeout>[] = [];
 	let origin: { x: number; y: number } | null = null;
-	const PALETTES: Record<number, string[]> = {
-		1: ['#ff9500', '#ffcc00', '#ff3b30'],
-		2: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55'],
-		3: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#32ade6', '#34c759'],
-		4: ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#5856d6', '#32ade6', '#34c759', '#ffd700', '#ffffff']
-	};
-	function burst(tier: number, tone = 'var(--orange)') {
-		if (reduced || !cvs) return;
-		cvs.width = innerWidth; cvs.height = innerHeight;
-		const n = [0, 45, 80, 150, 240][tier] ?? 45;
-		const pal = tone.includes('green') ? ['#34c759', '#a7e3b8', '#ffd700', '#32ade6'] : PALETTES[tier] ?? PALETTES[1];
-		const cx = origin?.x ?? cvs.width / 2, cy = origin?.y ?? cvs.height * 0.72;
+	const TAU = Math.PI * 2;
+	const CONFETTI = ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#5856d6', '#32ade6', '#34c759', '#ffd700', '#ffffff'];
+	const GLITTER = ['#ffd700', '#fff3b0', '#ffffff', '#ffe680', '#f5d76e'];
+	const GREEN = ['#34c759', '#a7e3b8', '#ffd700', '#32ade6', '#ffffff'];
+	const pickColor = (a: string[]) => a[(Math.random() * a.length) | 0];
+	function clearFireworks() { for (const t of fwTimers) clearTimeout(t); fwTimers = []; }
+	/** A radial pop of confetti + sparks at one point. `power` sets the reach. */
+	function explodeAt(cx: number, cy: number, n: number, power: number, pal: string[], sparkle: number) {
 		for (let i = 0; i < n; i++) {
-			const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * (5 + tier * 3.5);
-			parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - (2 + tier), g: 0.12 + Math.random() * 0.1, size: 4 + Math.random() * (4 + tier), rot: Math.random() * 6.28, vrot: (Math.random() - 0.5) * 0.6, color: pal[i % pal.length], life: 1, decay: 0.006 + Math.random() * 0.006, shape: Math.random() < 0.5 ? 0 : 1 });
+			const a = Math.random() * TAU, sp = power * (0.4 + Math.random() * 0.8), spark = Math.random() < sparkle;
+			parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - power * 0.35, g: 0.10 + Math.random() * 0.08, size: spark ? 2 + Math.random() * 3 : 3 + Math.random() * 5, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.7, color: pickColor(pal), life: 1, decay: 0.006 + Math.random() * 0.007, shape: spark ? 2 : (Math.random() < 0.5 ? 0 : 1), flick: spark });
+		}
+	}
+	/** Twinkling flecks that rain down the whole width — this is what fills the screen at high streaks. */
+	function spawnGlitter(n: number, pal: string[]) {
+		if (!cvs) return;
+		for (let i = 0; i < n; i++) {
+			parts.push({ x: Math.random() * cvs.width, y: -10 - Math.random() * cvs.height * 0.35, vx: (Math.random() - 0.5) * 1.3, vy: 1 + Math.random() * 2.6, g: 0.02 + Math.random() * 0.02, size: 2 + Math.random() * 3, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.4, color: pickColor(pal), life: 1, decay: 0.004 + Math.random() * 0.004, shape: 2, flick: true });
+		}
+	}
+	function burst(intensity: number, tone = 'var(--orange)') {
+		if (reduced || !cvs) return;
+		clearFireworks();
+		cvs.width = innerWidth; cvs.height = innerHeight;
+		const I = Math.max(0.15, intensity), green = tone.includes('green');
+		const pal = green ? GREEN : CONFETTI;
+		const cx = origin?.x ?? cvs.width / 2, cy = origin?.y ?? cvs.height * 0.72;
+		// Main pop from the tapped button.
+		explodeAt(cx, cy, Math.round(40 + I * 130), 5 + I * 9, pal, 0.25);
+		// Glitter fall, denser the higher the streak.
+		spawnGlitter(Math.round(I * 130), green ? GREEN : GLITTER);
+		// Fireworks burst across the viewport, staggered so they keep popping for a beat.
+		const shells = Math.round(I * 7);
+		for (let k = 0; k < shells; k++) {
+			fwTimers.push(setTimeout(() => {
+				if (!cvs) return;
+				const fx = cvs.width * (0.1 + Math.random() * 0.8), fy = cvs.height * (0.1 + Math.random() * 0.5);
+				explodeAt(fx, fy, Math.round(26 + I * 44), 5 + I * 7, pal, 0.4);
+				if (!raf) raf = requestAnimationFrame(tick);
+			}, 90 + k * 150 + Math.random() * 90));
 		}
 		if (!raf) raf = requestAnimationFrame(tick);
 	}
 	function tick() {
+		frame++;
 		const ctx = cvs?.getContext('2d');
 		if (!ctx || !cvs) { raf = 0; return; }
 		ctx.clearRect(0, 0, cvs.width, cvs.height);
 		parts = parts.filter((p) => p.life > 0 && p.y < cvs!.height + 40);
 		for (const p of parts) {
 			p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vrot; p.life -= p.decay;
-			ctx.save(); ctx.globalAlpha = Math.max(0, p.life); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
+			const alpha = p.flick ? Math.max(0, p.life) * (0.45 + 0.55 * Math.abs(Math.sin((frame + p.x) * 0.25))) : Math.max(0, p.life);
+			ctx.save(); ctx.globalAlpha = alpha; ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
 			if (p.shape === 0) ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55);
-			else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, 6.28); ctx.fill(); }
+			else if (p.shape === 1) { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, TAU); ctx.fill(); }
+			else { const s = p.size; ctx.fillRect(-s / 2, -s / 6, s, s / 3); ctx.fillRect(-s / 6, -s / 2, s / 3, s); }
 			ctx.restore();
 		}
+		// Pending fireworks re-arm the loop themselves, so it is safe to idle when nothing is on screen.
 		if (parts.length) raf = requestAnimationFrame(tick);
 		else { raf = 0; ctx.clearRect(0, 0, cvs.width, cvs.height); }
 	}
-	onDestroy(() => { if (raf) cancelAnimationFrame(raf); clearTimeout(cheerTimer); });
+	onDestroy(() => { if (raf) cancelAnimationFrame(raf); clearTimeout(cheerTimer); clearFireworks(); });
 	let sheet = $state<string | null>(null);
 	const multi = $derived(!!q && q.c.length > 1);
 	const link = $derived(q?.card ? CARD_BY_ID[q.card] : undefined);

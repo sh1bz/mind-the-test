@@ -169,7 +169,7 @@
 		const isRight = q.c.includes(order[i]); const was = picked.includes(i);
 		return isRight ? 'ok' : was ? 'bad' : 'dim';
 	};
-	const pctDone = $derived(goal ? Math.min(100, Math.round((100 * done) / goal)) : 0);
+	const pctBank = $derived(career.total ? Math.round((100 * career.answered) / career.total) : 0);
 </script>
 
 <svelte:window onkeydown={key} />
@@ -182,8 +182,8 @@
 			<div class="sbadge"><b>📚 {career.answered}</b><span>Answered</span></div>
 		</div>
 		<div class="scomplete">
-			<span class="sprog" aria-label="{pctDone}% of this session"><i style="width:{pctDone}%"></i></span>
-			<span class="scap">{done} of {goal} answered this session</span>
+			<span class="sprog" aria-label="{pctBank}% of the question bank answered"><i style="width:{pctBank}%"></i></span>
+			<span class="scap">{career.answered} of {career.total} answered</span>
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>

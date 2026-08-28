@@ -27,7 +27,6 @@
 	const used = $derived(freeUsed(app.gate));
 </script>
 
-<div class="datehd">Until It Sticks</div>
 <h1 class="large">Account</h1>
 
 {#if app.user}

@@ -23,7 +23,6 @@
 	$effect(() => { f; topic; search; shown = 60; });
 </script>
 
-<div class="datehd">{QUESTIONS.length} in the bank</div>
 <h1 class="large">Questions</h1>
 <input class="field search" type="search" placeholder="Search" aria-label="Search questions" bind:value={search} />
 <div class="wrapchips">{#each filters as x (x.id)}<button class="chip" class:on={f === x.id} type="button" aria-pressed={f === x.id} onclick={() => (f = x.id)}>{x.label}</button>{/each}</div>

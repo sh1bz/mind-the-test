@@ -195,6 +195,17 @@
 		const hit = stampMilestones(app.progress, st, now()); if (hit.length) app.persist();
 		nav.finishTrain({ answered: session.done, firstTry: session.firstTry.n ? session.firstTry.ok / session.firstTry.n : 0, best: session.best, before, after: ready(st, now()).passProb });
 	}
+	// TEMP: simulate a streak to preview the celebration escalation. Remove when done.
+	const SIM = [3, 5, 7, 10, 15, 20, 30];
+	let simN = $state(0);
+	function simStreak(e: MouseEvent) {
+		origin = { x: e.clientX, y: e.clientY };
+		streak = SIM[simN % SIM.length];
+		popKey++;
+		simN++;
+		const c = cheerFor(streak) ?? { msg: `🔥 ${streak} in a row!`, tier: 4 };
+		showCheer(c.msg, c.tier);
+	}
 	function key(e: KeyboardEvent) {
 		if (sheet) return;
 		if (e.key >= '1' && e.key <= '4') { origin = null; pick(Number(e.key) - 1); e.preventDefault(); }
@@ -225,6 +236,7 @@
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
+	<button class="simbtn" type="button" onclick={simStreak}>🎉 Test streak {SIM[simN % SIM.length]}</button>
 	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}{cheerPos ? `;left:${cheerPos.x}px;top:${cheerPos.y}px` : ''}">{cheer}</div>{/if}
 	<div class="qhead">
 		<span class="tico" style="--tc:var(--{TOPIC_COLORS[q.t]})"><Ic name={TOPIC_ICONS[q.t]} color="var(--tc)" /></span>
@@ -291,6 +303,8 @@
 	.sbadge.streak.blaze { background: linear-gradient(135deg, #ff3b30, #ff9500); animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
 	.sbadge.streak.blaze b, .sbadge.streak.blaze span { color: #fff; }
 	.gohome { display: block; margin: 12px auto 0; padding: 6px 14px; background: none; border: 0; color: var(--muted); font-size: 13px; font-weight: 600; }
+	/* TEMP test control — remove with simStreak. */
+	.simbtn { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 40; padding: 8px 14px; border-radius: 999px; border: 1px dashed var(--muted); background: var(--card); color: var(--ink); font-size: 13px; font-weight: 700; box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.3); }
 	@keyframes pop { 0% { transform: scale(1); } 42% { transform: scale(1.1); } 100% { transform: scale(1); } }
 	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.4); } 50% { box-shadow: 0 0 18px 3px rgba(255, 149, 0, 0.7); } }
 	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 31; color: #fff; font-weight: 800; letter-spacing: -0.3px; padding: 11px 20px; border-radius: 14px; pointer-events: none; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }

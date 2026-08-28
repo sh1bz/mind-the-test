@@ -58,8 +58,14 @@
 	function cheerFor(n: number): { msg: string; tier: number } | null {
 		if (n === 3) return { msg: '🔥 3 in a row!', tier: 1 };
 		if (n === 5) return { msg: '🔥🔥 On fire — 5!', tier: 2 };
-		if (n === 7) return { msg: '🔥 Red hot — 7!', tier: 2 };
+		if (n === 7) return { msg: '🎆 Fireworks — 7!', tier: 2 };
 		if (n === 10) return { msg: '⚡ UNSTOPPABLE — 10!', tier: 3 };
+		if (n === 15) return { msg: '🌠 Star shower — 15!', tier: 3 };
+		if (n === 20) return { msg: '🕺 RAVE MODE — 20!', tier: 4 };
+		if (n === 25) return { msg: '☄️ Meteor storm — 25!', tier: 4 };
+		if (n === 30) return { msg: '💥 SUPERNOVA — 30!', tier: 4 };
+		if (n === 40) return { msg: '👑 LEGENDARY — 40!', tier: 4 };
+		if (n === 50) return { msg: '🐐 G.O.A.T. — 50!', tier: 4 };
 		if (n > 10 && n % 5 === 0) return { msg: `🌋 INSANE — ${n}!`, tier: 4 };
 		return null;
 	}
@@ -68,80 +74,158 @@
 		// Pop the message just above the button that was tapped; keyboard picks fall back to the top.
 		cheerPos = origin ? { x: Math.min(Math.max(origin.x, 100), innerWidth - 100), y: Math.max(origin.y - 56, 60) } : null;
 		clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1500);
-		// One dial drives the whole show: a green lock-in is a steady mid burst; a streak scales
-		// with its length, so 3 is a spark and 20+ fills the screen with fireworks and glitter.
-		const intensity = tone.includes('green') ? 0.5 : Math.min(1.5, 0.28 + streak * 0.06);
-		burst(intensity, tone);
+		celebrate(streak, tone);
 	}
-	// shape: 0 rect, 1 disc, 2 sparkle (a glinting cross); flick makes it twinkle as it drifts.
-	type P = { x: number; y: number; vx: number; vy: number; g: number; size: number; rot: number; vrot: number; color: string; life: number; decay: number; shape: 0 | 1 | 2; flick: boolean };
+
+	// ---- Celebration engine -------------------------------------------------
+	// Every effect is a particle with a `kind`; the draw + physics switch on it. A streak just
+	// composes these blocks with weights, so higher streaks stack richer effects, not more code.
+	type Kind = 'conf' | 'spark' | 'glit' | 'emoji' | 'comet' | 'ring' | 'rocket';
+	type P = {
+		kind: Kind; x: number; y: number; vx: number; vy: number; g: number; size: number;
+		rot: number; vrot: number; color: string; life: number; decay: number;
+		shape?: 0 | 1; flick?: boolean; char?: string; targetY?: number; burst?: number; pal?: string[]; trail?: number[];
+	};
+	type Flash = { color: string; life: number; decay: number };
 	let cvs = $state<HTMLCanvasElement>();
 	let parts: P[] = [];
+	let flashes: Flash[] = [];
 	let raf = 0;
 	let frame = 0;
 	let fwTimers: ReturnType<typeof setTimeout>[] = [];
 	let origin: { x: number; y: number } | null = null;
 	const TAU = Math.PI * 2;
+	const CAP = 2600; // hard particle ceiling so the wildest streak can't stall the tab
 	const CONFETTI = ['#ff9500', '#ffcc00', '#ff3b30', '#ff2d55', '#af52de', '#5856d6', '#32ade6', '#34c759', '#ffd700', '#ffffff'];
 	const GLITTER = ['#ffd700', '#fff3b0', '#ffffff', '#ffe680', '#f5d76e'];
 	const GREEN = ['#34c759', '#a7e3b8', '#ffd700', '#32ade6', '#ffffff'];
+	const GOLD = ['#ffd700', '#ffec8b', '#ffffff', '#ffcc00', '#f5d76e'];
 	const pickColor = (a: string[]) => a[(Math.random() * a.length) | 0];
+	const W = () => cvs?.width ?? innerWidth;
+	const H = () => cvs?.height ?? innerHeight;
 	function clearFireworks() { for (const t of fwTimers) clearTimeout(t); fwTimers = []; }
-	/** A radial pop of confetti + sparks at one point. `power` sets the reach. */
-	function explodeAt(cx: number, cy: number, n: number, power: number, pal: string[], sparkle: number) {
-		for (let i = 0; i < n; i++) {
+	function arm() { if (!raf) raf = requestAnimationFrame(tick); }
+
+	/** Radial pop of confetti + sparks at a point. */
+	function confettiBurst(cx: number, cy: number, n: number, power: number, pal: string[], sparkle: number) {
+		for (let i = 0; i < n && parts.length < CAP; i++) {
 			const a = Math.random() * TAU, sp = power * (0.4 + Math.random() * 0.8), spark = Math.random() < sparkle;
-			parts.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - power * 0.35, g: 0.10 + Math.random() * 0.08, size: spark ? 2 + Math.random() * 3 : 3 + Math.random() * 5, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.7, color: pickColor(pal), life: 1, decay: 0.006 + Math.random() * 0.007, shape: spark ? 2 : (Math.random() < 0.5 ? 0 : 1), flick: spark });
+			parts.push({ kind: spark ? 'spark' : 'conf', x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - power * 0.35, g: 0.10 + Math.random() * 0.08, size: spark ? 2 + Math.random() * 3 : 3 + Math.random() * 5, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.7, color: pickColor(pal), life: 1, decay: 0.006 + Math.random() * 0.007, shape: Math.random() < 0.5 ? 0 : 1, flick: spark });
 		}
 	}
-	/** Twinkling flecks that rain down the whole width — this is what fills the screen at high streaks. */
-	function spawnGlitter(n: number, pal: string[]) {
-		if (!cvs) return;
-		for (let i = 0; i < n; i++) {
-			parts.push({ x: Math.random() * cvs.width, y: -10 - Math.random() * cvs.height * 0.35, vx: (Math.random() - 0.5) * 1.3, vy: 1 + Math.random() * 2.6, g: 0.02 + Math.random() * 0.02, size: 2 + Math.random() * 3, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.4, color: pickColor(pal), life: 1, decay: 0.004 + Math.random() * 0.004, shape: 2, flick: true });
+	/** Twinkling flecks raining down the whole width. */
+	function glitter(n: number, pal: string[]) {
+		for (let i = 0; i < n && parts.length < CAP; i++) {
+			parts.push({ kind: 'glit', x: Math.random() * W(), y: -10 - Math.random() * H() * 0.35, vx: (Math.random() - 0.5) * 1.3, vy: 1 + Math.random() * 2.6, g: 0.02 + Math.random() * 0.02, size: 2 + Math.random() * 3, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.4, color: pickColor(pal), life: 1, decay: 0.004 + Math.random() * 0.004, flick: true });
 		}
 	}
-	function burst(intensity: number, tone = 'var(--orange)') {
+	/** A confetti cannon firing up-and-inward from a bottom corner. side 0 = left, 1 = right. */
+	function cannon(side: 0 | 1, n: number, pal: string[]) {
+		const x = side === 0 ? 0 : W(), y = H(), base = side === 0 ? -Math.PI * 0.32 : -Math.PI * 0.68;
+		for (let i = 0; i < n && parts.length < CAP; i++) {
+			const ang = base + (Math.random() - 0.5) * 0.5, sp = 16 + Math.random() * 12;
+			parts.push({ kind: 'conf', x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0.22, size: 4 + Math.random() * 6, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.8, color: pickColor(pal), life: 1, decay: 0.005 + Math.random() * 0.005, shape: Math.random() < 0.5 ? 0 : 1 });
+		}
+	}
+	/** Rockets that rise from the bottom and explode into a burst at their apex. */
+	function fireworks(count: number, pal: string[]) {
+		for (let k = 0; k < count && parts.length < CAP; k++) {
+			parts.push({ kind: 'rocket', x: W() * (0.12 + Math.random() * 0.76), y: H() + 10, vx: (Math.random() - 0.5) * 1.5, vy: -(9 + Math.random() * 5), g: 0.14, size: 3, rot: 0, vrot: 0, color: pickColor(pal), life: 1, decay: 0, targetY: H() * (0.12 + Math.random() * 0.35), burst: 40 + ((Math.random() * 40) | 0), pal });
+		}
+	}
+	/** Expanding ring — a shockwave punch. */
+	function shockwave(x: number, y: number, color: string) {
+		parts.push({ kind: 'ring', x, y, vx: 0, vy: 0, g: 0, size: 6, rot: 0, vrot: 0, color, life: 1, decay: 0.03 });
+	}
+	/** Emoji rain from the top. */
+	function emojiRain(n: number, chars: string[], scale: number) {
+		for (let i = 0; i < n && parts.length < CAP; i++) {
+			parts.push({ kind: 'emoji', x: Math.random() * W(), y: -20 - Math.random() * H() * 0.3, vx: (Math.random() - 0.5) * 1.5, vy: 1.5 + Math.random() * 2.5, g: 0.03, size: (16 + Math.random() * 16) * scale, rot: (Math.random() - 0.5) * 0.4, vrot: (Math.random() - 0.5) * 0.12, color: '#000', life: 1, decay: 0.004, char: pickColor(chars) });
+		}
+	}
+	/** A comet arcing across the screen with a trail. */
+	function comet(pal: string[]) {
+		const fromLeft = Math.random() < 0.5, sp = 14 + Math.random() * 9;
+		parts.push({ kind: 'comet', x: fromLeft ? -30 : W() + 30, y: Math.random() * H() * 0.4, vx: (fromLeft ? 1 : -1) * sp, vy: 2 + Math.random() * 3, g: 0.05, size: 5 + Math.random() * 3, rot: 0, vrot: 0, color: pickColor(pal), life: 1, decay: 0.005, trail: [] });
+	}
+	function flash(color: string, life: number, decay: number) { flashes.push({ color, life, decay }); }
+	function ravePulse(hues: string[]) {
+		hues.forEach((h, i) => fwTimers.push(setTimeout(() => { if (!cvs) return; flash(h, 0.34, 0.05); arm(); }, i * 150)));
+	}
+	/** Keep lobbing fireworks for `dur` ms — the sustained finale on the biggest streaks. */
+	function sustain(pal: string[], dur: number, every: number) {
+		for (let t = every; t < dur; t += every) fwTimers.push(setTimeout(() => { if (!cvs) return; fireworks(2 + ((Math.random() * 3) | 0), pal); arm(); }, t));
+	}
+
+	/** The ladder: compose the blocks by streak. Each rung keeps the ones below and adds its own. */
+	function celebrate(streak: number, tone: string) {
 		if (reduced || !cvs) return;
 		clearFireworks();
 		cvs.width = innerWidth; cvs.height = innerHeight;
-		const I = Math.max(0.15, intensity), green = tone.includes('green');
-		const pal = green ? GREEN : CONFETTI;
-		const cx = origin?.x ?? cvs.width / 2, cy = origin?.y ?? cvs.height * 0.72;
-		// Main pop from the tapped button.
-		explodeAt(cx, cy, Math.round(40 + I * 130), 5 + I * 9, pal, 0.25);
-		// Glitter fall, denser the higher the streak.
-		spawnGlitter(Math.round(I * 130), green ? GREEN : GLITTER);
-		// Fireworks burst across the viewport, staggered so they keep popping for a beat.
-		const shells = Math.round(I * 7);
-		for (let k = 0; k < shells; k++) {
-			fwTimers.push(setTimeout(() => {
-				if (!cvs) return;
-				const fx = cvs.width * (0.1 + Math.random() * 0.8), fy = cvs.height * (0.1 + Math.random() * 0.5);
-				explodeAt(fx, fy, Math.round(26 + I * 44), 5 + I * 7, pal, 0.4);
-				if (!raf) raf = requestAnimationFrame(tick);
-			}, 90 + k * 150 + Math.random() * 90));
+		const green = tone.includes('green'), pal = green ? GREEN : CONFETTI;
+		const cx = origin?.x ?? W() / 2, cy = origin?.y ?? H() * 0.72;
+		const s = streak, cap = Math.min(s, 40);
+		confettiBurst(cx, cy, 50 + cap * 6, 6 + cap * 0.4, pal, 0.28);
+		glitter(40 + cap * 4, green ? GREEN : GLITTER);
+		if (!green) {
+			if (s >= 5) { cannon(0, 45 + s, pal); cannon(1, 45 + s, pal); }
+			if (s >= 7) fireworks(3 + Math.floor((s - 7) / 4), pal);
+			if (s >= 10) { shockwave(cx, cy, '#ffd700'); emojiRain(12 + s, ['🔥'], 0.9); }
+			if (s >= 15) { for (let k = 0; k < 2 + Math.floor(s / 10); k++) comet(pal); glitter(120, GLITTER); }
+			if (s >= 20) ravePulse(['#ff9500', '#ff2d55', '#5856d6', '#32ade6']);
+			if (s >= 25) { for (let k = 0; k < 3; k++) comet(GOLD); emojiRain(18, ['💥', '⚡'], 1); }
+			if (s >= 30) { sustain(pal, 2600, 200); flash('#ffffff', 0.5, 0.05); emojiRain(28, ['🎉', '🔥', '⭐'], 1.1); }
+			if (s >= 40) { emojiRain(22, ['👑', '🏆', '✨'], 1.2); confettiBurst(cx, cy, 150, 16, GOLD, 0.4); }
+			if (s >= 50) { sustain(GOLD, 4200, 160); emojiRain(40, ['🐐', '👑', '🔥', '⚡', '🎉'], 1.3); ravePulse(GOLD); }
 		}
-		if (!raf) raf = requestAnimationFrame(tick);
+		arm();
 	}
+
 	function tick() {
 		frame++;
 		const ctx = cvs?.getContext('2d');
 		if (!ctx || !cvs) { raf = 0; return; }
-		ctx.clearRect(0, 0, cvs.width, cvs.height);
-		parts = parts.filter((p) => p.life > 0 && p.y < cvs!.height + 40);
+		const w = cvs.width, h = cvs.height;
+		ctx.clearRect(0, 0, w, h);
+		const next: P[] = [];
 		for (const p of parts) {
+			if (p.kind === 'rocket') {
+				p.vy += p.g; p.x += p.vx; p.y += p.vy;
+				if (p.y <= (p.targetY ?? 0) || p.vy >= 0) { confettiBurst(p.x, p.y, p.burst ?? 40, 7 + Math.random() * 4, p.pal ?? CONFETTI, 0.5); if (Math.random() < 0.5) shockwave(p.x, p.y, p.color); continue; }
+				ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 2.4, 0, TAU); ctx.fill();
+				ctx.globalAlpha = 0.4; ctx.strokeStyle = p.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3); ctx.stroke(); ctx.restore();
+				next.push(p); continue;
+			}
+			if (p.kind === 'ring') {
+				p.size += 16; p.life -= p.decay;
+				if (p.life <= 0) continue;
+				ctx.save(); ctx.globalAlpha = Math.max(0, p.life); ctx.strokeStyle = p.color; ctx.lineWidth = Math.max(1, 9 * p.life); ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.stroke(); ctx.restore();
+				next.push(p); continue;
+			}
+			// confetti / spark / glit / emoji / comet share ballistic motion
 			p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vrot; p.life -= p.decay;
+			if (p.life <= 0 || p.y > h + 50 || p.x < -80 || p.x > w + 80) continue;
 			const alpha = p.flick ? Math.max(0, p.life) * (0.45 + 0.55 * Math.abs(Math.sin((frame + p.x) * 0.25))) : Math.max(0, p.life);
-			ctx.save(); ctx.globalAlpha = alpha; ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color;
-			if (p.shape === 0) ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55);
-			else if (p.shape === 1) { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, TAU); ctx.fill(); }
-			else { const s = p.size; ctx.fillRect(-s / 2, -s / 6, s, s / 3); ctx.fillRect(-s / 6, -s / 2, s / 3, s); }
+			if (p.kind === 'comet') {
+				(p.trail ??= []).push(p.x, p.y); if (p.trail.length > 20) p.trail.splice(0, 2);
+				ctx.save(); ctx.strokeStyle = p.color; ctx.lineCap = 'round';
+				for (let i = 0; i < p.trail.length - 2; i += 2) { ctx.globalAlpha = (i / p.trail.length) * alpha * 0.9; ctx.lineWidth = (i / p.trail.length) * p.size; ctx.beginPath(); ctx.moveTo(p.trail[i], p.trail[i + 1]); ctx.lineTo(p.trail[i + 2], p.trail[i + 3]); ctx.stroke(); }
+				ctx.globalAlpha = alpha; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size / 2, 0, TAU); ctx.fill(); ctx.restore();
+				next.push(p); continue;
+			}
+			ctx.save(); ctx.globalAlpha = alpha; ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+			if (p.kind === 'emoji') { ctx.font = `${p.size}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(p.char ?? '✨', 0, 0); }
+			else if (p.kind === 'conf') { ctx.fillStyle = p.color; if (p.shape === 0) ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.55); else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, TAU); ctx.fill(); } }
+			else { ctx.fillStyle = p.color; const s = p.size; ctx.fillRect(-s / 2, -s / 6, s, s / 3); ctx.fillRect(-s / 6, -s / 2, s / 3, s); }
 			ctx.restore();
+			next.push(p);
 		}
-		// Pending fireworks re-arm the loop themselves, so it is safe to idle when nothing is on screen.
-		if (parts.length) raf = requestAnimationFrame(tick);
-		else { raf = 0; ctx.clearRect(0, 0, cvs.width, cvs.height); }
+		parts = next;
+		// Screen flashes on top.
+		flashes = flashes.filter((f) => (f.life -= f.decay) > 0);
+		for (const f of flashes) { ctx.save(); ctx.globalAlpha = Math.max(0, f.life); ctx.fillStyle = f.color; ctx.fillRect(0, 0, w, h); ctx.restore(); }
+		if (parts.length || flashes.length) raf = requestAnimationFrame(tick);
+		else { raf = 0; ctx.clearRect(0, 0, w, h); }
 	}
 	onDestroy(() => { if (raf) cancelAnimationFrame(raf); clearTimeout(cheerTimer); clearFireworks(); });
 	let sheet = $state<string | null>(null);
@@ -196,7 +280,7 @@
 		nav.finishTrain({ answered: session.done, firstTry: session.firstTry.n ? session.firstTry.ok / session.firstTry.n : 0, best: session.best, before, after: ready(st, now()).passProb });
 	}
 	// TEMP: simulate a streak to preview the celebration escalation. Remove when done.
-	const SIM = [3, 5, 7, 10, 15, 20, 30];
+	const SIM = [3, 5, 7, 10, 15, 20, 25, 30, 40, 50];
 	let simN = $state(0);
 	function simStreak(e: MouseEvent) {
 		origin = { x: e.clientX, y: e.clientY };

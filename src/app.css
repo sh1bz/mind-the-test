@@ -12,7 +12,7 @@
 	--r: 16px; --rb: 14px; --rc: 10px;
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); color-scheme: light; -webkit-text-size-adjust: 100%; }
+html { background: var(--bg); color-scheme: light; -webkit-text-size-adjust: 100%; touch-action: manipulation; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, .display { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
 p { margin: 0; }

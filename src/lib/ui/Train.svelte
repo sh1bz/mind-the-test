@@ -100,6 +100,7 @@
 	const GLITTER = ['#ffd700', '#fff3b0', '#ffffff', '#ffe680', '#f5d76e'];
 	const GREEN = ['#34c759', '#a7e3b8', '#ffd700', '#32ade6', '#ffffff'];
 	const GOLD = ['#ffd700', '#ffec8b', '#ffffff', '#ffcc00', '#f5d76e'];
+	const COOL = ['#8ea9c1', '#b9c7d6', '#dfe7ef', '#a7c8e8', '#ffffff'];
 	const pickColor = (a: string[]) => a[(Math.random() * a.length) | 0];
 	const W = () => cvs?.width ?? innerWidth;
 	const H = () => cvs?.height ?? innerHeight;
@@ -178,6 +179,31 @@
 			if (s >= 40) { emojiRain(22, ['👑', '🏆', '✨'], 1.2); confettiBurst(cx, cy, 150, 16, GOLD, 0.4); }
 			if (s >= 50) { sustain(GOLD, 4200, 160); emojiRain(40, ['🐐', '👑', '🔥', '⚡', '🎉'], 1.3); ravePulse(GOLD); }
 		}
+		arm();
+	}
+
+	// Losing a streak is gentle and kind: no bang, the flame just puffs away and cool embers settle,
+	// with an encouraging word — you never feel punished for a miss.
+	function showBreak(prev: number) {
+		const msgs = [`Streak reset — you had ${prev}! Shake it off. 💪`, "No stress — it'll come back until it sticks.", `${prev} in a row. Get the next one.`, 'Deep breath. Keep going.'];
+		cheer = msgs[(Math.random() * msgs.length) | 0]; cheerTier = 1; cheerTone = 'var(--blue)';
+		cheerPos = origin ? { x: Math.min(Math.max(origin.x, 100), innerWidth - 100), y: Math.max(origin.y - 56, 60) } : null;
+		clearTimeout(cheerTimer); cheerTimer = setTimeout(() => (cheer = null), 1700);
+		soften(origin?.x ?? W() / 2, origin?.y ?? H() * 0.6);
+	}
+	function soften(x: number, y: number) {
+		if (reduced || !cvs) return;
+		clearFireworks();
+		cvs.width = innerWidth; cvs.height = innerHeight;
+		shockwave(x, y, '#9fb4c9');
+		for (let i = 0; i < 28 && parts.length < CAP; i++) {
+			const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.7, sp = 1 + Math.random() * 2.5;
+			parts.push({ kind: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.5 + 0.4, g: 0.03, size: 2 + Math.random() * 3, rot: Math.random() * TAU, vrot: (Math.random() - 0.5) * 0.3, color: pickColor(COOL), life: 1, decay: 0.008 + Math.random() * 0.006, flick: true });
+		}
+		for (let i = 0; i < 4; i++) {
+			parts.push({ kind: 'emoji', x: x + (Math.random() - 0.5) * 40, y, vx: (Math.random() - 0.5) * 1.4, vy: -1 - Math.random() * 1.6, g: -0.008, size: 24 + Math.random() * 10, rot: (Math.random() - 0.5) * 0.3, vrot: (Math.random() - 0.5) * 0.05, color: '#000', life: 1, decay: 0.012, char: '💨' });
+		}
+		glitter(28, COOL);
 		arm();
 	}
 
@@ -267,28 +293,20 @@
 			app.recordMiss(q.id, wrong);
 			navigator.vibrate?.(60);
 		} else mixup = null;
+		const prevStreak = streak;
 		graded = true; done = session.done; streak = session.streak; best = session.best; acc = { ...session.firstTry };
 		if (correct) {
 			popKey++;
 			if (isKnown(st(q.id)) && !wasStuck) { lockKey++; showCheer(`🧠 Locked in! ${career.stuck} of ${career.total}`, 2, 'var(--green)'); }
 			else { const c = cheerFor(streak); if (c) showCheer(c.msg, c.tier); }
+		} else if (prevStreak >= 3) {
+			showBreak(prevStreak);
 		}
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
 	function finish() {
 		const hit = stampMilestones(app.progress, st, now()); if (hit.length) app.persist();
 		nav.finishTrain({ answered: session.done, firstTry: session.firstTry.n ? session.firstTry.ok / session.firstTry.n : 0, best: session.best, before, after: ready(st, now()).passProb });
-	}
-	// TEMP: simulate a streak to preview the celebration escalation. Remove when done.
-	const SIM = [3, 5, 7, 10, 15, 20, 25, 30, 40, 50];
-	let simN = $state(0);
-	function simStreak(e: MouseEvent) {
-		origin = { x: e.clientX, y: e.clientY };
-		streak = SIM[simN % SIM.length];
-		popKey++;
-		simN++;
-		const c = cheerFor(streak) ?? { msg: `🔥 ${streak} in a row!`, tier: 4 };
-		showCheer(c.msg, c.tier);
 	}
 	function key(e: KeyboardEvent) {
 		if (sheet) return;
@@ -320,7 +338,6 @@
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
-	<button class="simbtn" type="button" onclick={simStreak}>🎉 Test streak {SIM[simN % SIM.length]}</button>
 	{#if cheer}<div class="cheer tier{cheerTier}" role="status" style="background:{cheerTone}{cheerPos ? `;left:${cheerPos.x}px;top:${cheerPos.y}px` : ''}">{cheer}</div>{/if}
 	<div class="qhead">
 		<span class="tico" style="--tc:var(--{TOPIC_COLORS[q.t]})"><Ic name={TOPIC_ICONS[q.t]} color="var(--tc)" /></span>
@@ -387,8 +404,6 @@
 	.sbadge.streak.blaze { background: linear-gradient(135deg, #ff3b30, #ff9500); animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.3), blaze 1.1s ease-in-out infinite; }
 	.sbadge.streak.blaze b, .sbadge.streak.blaze span { color: #fff; }
 	.gohome { display: block; margin: 12px auto 0; padding: 6px 14px; background: none; border: 0; color: var(--muted); font-size: 13px; font-weight: 600; }
-	/* TEMP test control — remove with simStreak. */
-	.simbtn { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 40; padding: 8px 14px; border-radius: 999px; border: 1px dashed var(--muted); background: var(--card); color: var(--ink); font-size: 13px; font-weight: 700; box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.3); }
 	@keyframes pop { 0% { transform: scale(1); } 42% { transform: scale(1.1); } 100% { transform: scale(1); } }
 	@keyframes blaze { 0%, 100% { box-shadow: 0 0 6px 0 rgba(255, 90, 40, 0.4); } 50% { box-shadow: 0 0 18px 3px rgba(255, 149, 0, 0.7); } }
 	.cheer { position: fixed; left: 50%; top: 15%; transform: translateX(-50%); z-index: 31; color: #fff; font-weight: 800; letter-spacing: -0.3px; padding: 11px 20px; border-radius: 14px; pointer-events: none; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); animation: cheerpop 1.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }

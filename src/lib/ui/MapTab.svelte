@@ -13,7 +13,6 @@
 	const short = (t: string) => t.split(/ — | & |,/)[0].replace('The UK', 'Geography').replace('Mind the gap', 'Traps').replace('Numbers that get tested', 'Numbers').replace('Values', 'Values').replace('Government', 'Government').replace('Law', 'Law').replace('Culture', 'Culture');
 </script>
 
-<div class="datehd">Revision</div>
 <div class="row">
 	<h1 class="large">Map</h1>
 	<div class="seg" role="group" aria-label="Reading mode" style="width:200px">

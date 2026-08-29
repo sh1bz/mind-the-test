@@ -126,6 +126,11 @@ class AppStore {
 	}
 	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; this.setPaid(false); }
 	private setPaid(v: boolean) { this.paid = v; try { if (v) localStorage.setItem(PAID_KEY, '1'); else localStorage.removeItem(PAID_KEY); } catch { /* fine */ } }
+	/** A master/comp code unlocks locally, without Stripe. Returns true when it matched. */
+	redeemCode(code: string): boolean {
+		if (code.trim() === '280614') { this.setPaid(true); return true; }
+		return false;
+	}
 	/** Re-read the entitlement for the signed-in email. Returns the new value; null when offline. */
 	async checkPaid(): Promise<boolean | null> {
 		if (!this.user) return null;

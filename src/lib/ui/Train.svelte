@@ -6,7 +6,8 @@
 	import { Session, shuffle, type Card } from '$lib/engine/session';
 	import { isDue, isNew, isWeak, isKnown } from '$lib/engine/scheduler';
 	import { correctText } from '$lib/ui/derive';
-	import { plan, pool, ready, optionOrder, stampMilestones, stateCounts } from '$lib/ui/derive';
+	import { pool, optionOrder, stampMilestones, stateCounts } from '$lib/ui/derive';
+	import { FREE_QUESTIONS } from '$lib/engine/gate';
 	import Sheet from './Sheet.svelte';
 	import Ic from './Ic.svelte';
 	import { TOPIC_ICONS } from './icons';
@@ -16,22 +17,21 @@
 	const st = (id: string) => app.item(id);
 	const rand = Math.random;
 	const now = () => Date.now();
-	const before = ready(st, now()).passProb;
-
 	// Build the queue for this kind of session
 	const qs = pool(spec.topic); const ids = qs.map((q) => q.id); const topicOf = new Map(qs.map((q) => [q.id, q.t])); const topic = (id: string) => topicOf.get(id) ?? 0;
-	let session: Session; let goal: number;
+	// Reviews of seen questions stay free; new questions are limited to the free allowance until unlocked.
+	const newBudget = app.paid ? undefined : Math.max(0, FREE_QUESTIONS - app.answered);
+	let session: Session;
 	if (spec.kind === 'smart') {
-		const p = plan(app.progress, st, now(), spec.topic);
-		goal = Math.min(40, Math.max(1, p.due + p.fresh));
-		session = new Session('smart', { ids, state: st, now, rand, topic, newBudget: p.fresh });
+		// One endless session: no goal — it keeps serving due-first then new, missed cards flow back
+		// in 8–12 cards later, and you leave with Go home when you want.
+		session = new Session('smart', { ids, state: st, now, rand, topic, newBudget });
 	} else {
 		let seed: string[] = [];
 		if (spec.kind === 'review') seed = ids.filter((id) => isDue(st(id), now())).sort((a, b) => st(a).due - st(b).due);
-		else if (spec.kind === 'new') { const p = plan(app.progress, st, now(), spec.topic); seed = shuffle(ids.filter((id) => isNew(st(id))), rand).slice(0, p.fresh); }
+		else if (spec.kind === 'new') { seed = shuffle(ids.filter((id) => isNew(st(id))), rand); if (newBudget !== undefined) seed = seed.slice(0, newBudget); }
 		else if (spec.kind === 'weak') seed = ids.filter((id) => isWeak(st(id)));
 		else seed = spec.ids ?? [];
-		goal = seed.length;
 		session = new Session('custom', { ids, state: st, now, rand, topic }, seed);
 	}
 
@@ -42,7 +42,6 @@
 	let mixup = $state<{ text: string; n: number } | null>(null); // a distractor picked before
 	let graded = $state(false);
 	let correct = $state(false);
-	let done = $state(0);
 	let streak = $state(0);
 	let best = $state(0);
 	let acc = $state({ ok: 0, n: 0 });
@@ -266,7 +265,7 @@
 	});
 
 	function load() {
-		const c = spec.kind === 'smart' && done >= goal ? session.nextPending() : session.next();
+		const c = session.next();
 		if (!c) { if (session.done === 0) { q = null; return; } return finish(); }
 		card = c; q = BY_ID[c.id]; order = optionOrder(q, rand); picked = []; graded = false;
 	}
@@ -294,7 +293,7 @@
 			navigator.vibrate?.(60);
 		} else mixup = null;
 		const prevStreak = streak;
-		graded = true; done = session.done; streak = session.streak; best = session.best; acc = { ...session.firstTry };
+		graded = true; streak = session.streak; best = session.best; acc = { ...session.firstTry };
 		if (correct) {
 			popKey++;
 			if (isKnown(st(q.id)) && !wasStuck) { lockKey++; showCheer(`🧠 Locked in! ${career.stuck} of ${career.total}`, 2, 'var(--green)'); }
@@ -305,8 +304,9 @@
 	}
 	function next() { if (!graded) { if (multi && picked.length) grade(); return; } load(); }
 	function finish() {
+		// No summary interstitial — record any milestones reached and drop straight back to Home.
 		const hit = stampMilestones(app.progress, st, now()); if (hit.length) app.persist();
-		nav.finishTrain({ answered: session.done, firstTry: session.firstTry.n ? session.firstTry.ok / session.firstTry.n : 0, best: session.best, before, after: ready(st, now()).passProb });
+		nav.home();
 	}
 	function key(e: KeyboardEvent) {
 		if (sheet) return;
@@ -367,13 +367,13 @@
 	{/if}
 	{#if graded}
 		<button class="big {correct ? 'ok' : 'bad'}" type="button" onclick={next}>Continue {#if !correct}<span><small>back in 8–12 cards</small></span>{/if}<span class="key">↵</span></button>
-		<button class="gohome" type="button" onclick={() => nav.home()}>Go home</button>
+		<button class="gohome" type="button" onclick={finish}>Go home</button>
 	{:else if multi}
 		<button class="big alt" type="button" disabled={picked.length !== q.c.length} onclick={(e) => { if (e.clientX) origin = { x: e.clientX, y: e.clientY }; grade(); }}>Check <span class="key">↵</span></button>
 	{/if}
 {:else}
 	<h1 class="large">Nothing to train here.</h1><p class="muted">Every question in this set is known or not due yet.</p>
-	<button class="big ghost" type="button" onclick={() => nav.home()}>Back to home</button>
+	<button class="big ghost" type="button" onclick={finish}>Back to home</button>
 {/if}
 
 {#if sheet && link}

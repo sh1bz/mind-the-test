@@ -73,7 +73,7 @@
 	<div class="note">All caught up{p.unseen ? '' : ' — every question seen'}. {p.weak ? `${p.weak} you keep missing are waiting.` : 'Come back when reviews are due, or run a mock.'}</div>
 	{#if p.weak}<button class="big" type="button" onclick={() => start('weak')}>Drill the ones you keep missing <span class="arrow">›</span></button>{/if}
 {:else}
-	<button class="big" type="button" onclick={() => start('smart')}>Continue training <span class="arrow">›</span></button>
+	<button class="big" type="button" onclick={() => start('smart')}>{c.answered === 0 ? 'Start training' : 'Continue training'} <span class="arrow">›</span></button>
 {/if}
 <button class="big alt" type="button" onclick={() => nav.startMock(false)}><span>Mock exam<small>{EXAM_QUESTIONS} questions · {EXAM_MINUTES} min · pass {EXAM_PASS}</small></span><span class="arrow">›</span></button>
 

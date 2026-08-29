@@ -4,12 +4,12 @@ import { locked, FREE_QUESTIONS, FREE_MOCKS } from './gate';
 const g = (answered: number, mocks: number, paid = false) => ({ answered, mocks, paid });
 
 describe('gate', () => {
-	it('everything is free before 50 questions and 1 mock', () => {
+	it('everything is free before 25 questions and 1 mock', () => {
 		expect(locked(g(0, 0), 'session')).toBe(false);
 		expect(locked(g(FREE_QUESTIONS - 1, 0), 'session')).toBe(false);
 		expect(locked(g(0, FREE_MOCKS - 1), 'mock')).toBe(false);
 	});
-	it('locks new sessions at 50 answered and mocks after the first', () => {
+	it('locks new sessions at 25 answered and mocks after the first', () => {
 		expect(locked(g(FREE_QUESTIONS, 0), 'session')).toBe(true);
 		expect(locked(g(0, FREE_MOCKS), 'mock')).toBe(true);
 	});

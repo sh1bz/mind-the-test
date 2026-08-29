@@ -1,5 +1,5 @@
-// The free tier: 50 answered questions and 1 mock. Reviews of seen questions are always free.
-export const FREE_QUESTIONS = 50;
+// The free tier: 25 answered questions and 1 mock. Reviews of seen questions are always free.
+export const FREE_QUESTIONS = 25;
 export const FREE_MOCKS = 1;
 export const PRICE = '£4.99';
 export type Gate = { answered: number; mocks: number; paid: boolean };

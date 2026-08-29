@@ -61,8 +61,8 @@
 	<div class="ltile streak"><b class="num">🔥 {dayStreak}</b><span>Day streak</span></div>
 </div>
 <div class="card lockcard">
-	<div class="lockbar"><i style="width:{(100 * c.stuck) / c.total}%;background:var(--green)"></i></div>
-	<div class="lockcap"><span><b class="num">{c.stuck}</b> of {c.total} locked in</span><span class="num">{c.total - c.stuck} to go</span></div>
+	<div class="lockbar"><i class="seen" style="width:{(100 * c.answered) / c.total}%"></i><i class="lock" style="width:{(100 * c.stuck) / c.total}%"></i></div>
+	<div class="lockcap"><span><b class="num">{c.stuck}</b> locked · <span class="num">{c.answered}</span> answered</span><span class="num">of {c.total}</span></div>
 </div>
 
 {#if nav.topic !== null}
@@ -107,8 +107,10 @@
 	.ltile.learn b { color: var(--blue); }
 	.ltile.slip b { color: var(--orange); }
 	.ltile.streak b { color: var(--orange); }
-	.lockbar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
-	.lockbar i { display: block; height: 100%; }
+	.lockbar { position: relative; height: 12px; border-radius: 7px; overflow: hidden; background: var(--soft); }
+	.lockbar i { position: absolute; left: 0; top: 0; height: 100%; border-radius: 7px; transition: width 0.35s ease; }
+	.lockbar .seen { background: #cfe8ff; }
+	.lockbar .lock { background: var(--green); }
 	.lockcap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
 	.lockcap b { color: var(--ink); }
 </style>

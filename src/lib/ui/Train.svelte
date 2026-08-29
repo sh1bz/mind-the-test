@@ -321,6 +321,7 @@
 		return isRight ? 'ok' : was ? 'bad' : 'dim';
 	};
 	const pctBank = $derived(career.total ? Math.round((100 * career.answered) / career.total) : 0);
+	const pctLock = $derived(career.total ? Math.round((100 * career.stuck) / career.total) : 0);
 </script>
 
 <svelte:window onkeydown={key} />
@@ -333,8 +334,8 @@
 			<div class="sbadge"><b>📚 {career.answered}</b><span>Answered</span></div>
 		</div>
 		<div class="scomplete">
-			<span class="sprog" aria-label="{pctBank}% of the question bank answered"><i style="width:{pctBank}%"></i></span>
-			<span class="scap">{career.answered} of {career.total} answered</span>
+			<span class="sprog" aria-label="{pctLock}% locked in, {pctBank}% answered"><i class="seen" style="width:{pctBank}%"></i><i class="lock" style="width:{pctLock}%"></i></span>
+			<span class="scap">{career.stuck} locked · {career.answered} answered · of {career.total}</span>
 		</div>
 	</div>
 	<canvas class="confetti" bind:this={cvs}></canvas>
@@ -390,8 +391,10 @@
 	.pick { color: var(--muted); }
 	.stopbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
 	.scomplete { display: flex; flex-direction: column; gap: 6px; }
-	.sprog { display: block; height: 8px; border-radius: 5px; background: var(--soft); overflow: hidden; }
-	.sprog i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--blue), #4aa3ff); transition: width 0.35s cubic-bezier(0.3, 0.9, 0.3, 1); }
+	.sprog { position: relative; display: block; height: 8px; border-radius: 5px; background: var(--soft); overflow: hidden; }
+	.sprog i { position: absolute; left: 0; top: 0; height: 100%; border-radius: 5px; transition: width 0.35s cubic-bezier(0.3, 0.9, 0.3, 1); }
+	.sprog .seen { background: #cfe8ff; }
+	.sprog .lock { background: var(--green); }
 	.scap { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 	.sbadges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 	.sbadge { background: var(--card); border-radius: 12px; padding: 10px 6px; text-align: center; }

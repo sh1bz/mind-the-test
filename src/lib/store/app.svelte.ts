@@ -40,7 +40,8 @@ class AppStore {
 
 	// ---------- mutations ----------
 	answer(id: string, correct: boolean, now = Date.now()) {
-		if (this.answered === 0) convert('start');
+		const n = this.answered;
+		if (n === 0) convert('start'); else if (n === 9 && !this.progress.items[id]?.seen) convert('ten');
 		this.progress.items[id] = grade(this.item(id), correct, now, this.exam);
 		const d = (this.progress.days[dayKey(now)] ??= { n: 0, ok: 0 });
 		d.n++; if (correct) d.ok++;

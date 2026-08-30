@@ -18,8 +18,18 @@ jobs:
       - run: npm run check
         env:
           PUBLIC_PAY_LINK: ${{ vars.PUBLIC_PAY_LINK }}
+          PUBLIC_GADS_ID: ${{ vars.PUBLIC_GADS_ID }}
+          PUBLIC_GADS_UNLOCK: ${{ vars.PUBLIC_GADS_UNLOCK }}
+          PUBLIC_GADS_START: ${{ vars.PUBLIC_GADS_START }}
+          PUBLIC_GADS_TEN: ${{ vars.PUBLIC_GADS_TEN }}
+          PUBLIC_GADS_DATE: ${{ vars.PUBLIC_GADS_DATE }}
       - run: npm run build
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
           PUBLIC_PAY_LINK: ${{ vars.PUBLIC_PAY_LINK }}
+          PUBLIC_GADS_ID: ${{ vars.PUBLIC_GADS_ID }}
+          PUBLIC_GADS_UNLOCK: ${{ vars.PUBLIC_GADS_UNLOCK }}
+          PUBLIC_GADS_START: ${{ vars.PUBLIC_GADS_START }}
+          PUBLIC_GADS_TEN: ${{ vars.PUBLIC_GADS_TEN }}
+          PUBLIC_GADS_DATE: ${{ vars.PUBLIC_GADS_DATE }}

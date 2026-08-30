@@ -3,15 +3,16 @@
 // Consent Mode v2 with everything denied by default: no cookies are written, the tag sends
 // cookieless pings and Ads models the conversions. No banner needed for that.
 import { browser } from '$app/environment';
-import { PUBLIC_GADS_ID, PUBLIC_GADS_UNLOCK, PUBLIC_GADS_START, PUBLIC_GADS_DATE } from '$env/static/public';
+import { PUBLIC_GADS_ID, PUBLIC_GADS_UNLOCK, PUBLIC_GADS_START, PUBLIC_GADS_TEN, PUBLIC_GADS_DATE } from '$env/static/public';
 
 const ID = PUBLIC_GADS_ID;
 const LABEL: Record<Kind, string | undefined> = {
 	unlock: PUBLIC_GADS_UNLOCK,
 	start: PUBLIC_GADS_START,
+	ten: PUBLIC_GADS_TEN,
 	date: PUBLIC_GADS_DATE
 };
-export type Kind = 'unlock' | 'start' | 'date';
+export type Kind = 'unlock' | 'start' | 'ten' | 'date';
 export const adsEnabled = !!ID;
 
 declare global { interface Window { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void } }

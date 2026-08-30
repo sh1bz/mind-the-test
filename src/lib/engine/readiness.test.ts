@@ -10,11 +10,17 @@ describe('readiness', () => {
 		expect(atLeast(24, 18, 0.9)).toBeGreaterThan(0.98);
 		expect(atLeast(24, 18, 0.75)).toBeCloseTo(0.58, 1);
 	});
-	it('untouched bank ≈ guess rate, mastered bank ≈ certain pass', () => {
-		expect(readiness(Array(400).fill(fresh()), T0).passProb).toBeLessThan(0.001);
+	it('unseen bank = 0 readiness; fully covered + mastered ≈ high readiness', () => {
+		expect(readiness(Array(400).fill(fresh()), T0).passProb).toBe(0);
 		let k = fresh(); for (let i = 0; i < 3; i++) k = grade(k, true, T0 - (8 - i * 3) * 86400000);
-		const r = readiness(Array(400).fill(k), T0);
-		expect(r.recall).toBeGreaterThan(0.9); expect(r.passProb).toBeGreaterThan(0.98);
+		const full = readiness(Array(400).fill(k), T0);
+		expect(full.recall).toBeGreaterThan(0.9); expect(full.passProb).toBeGreaterThan(0.85);
+	});
+	it('readiness climbs with coverage, not just recall', () => {
+		let k = fresh(); for (let i = 0; i < 3; i++) k = grade(k, true, T0 - (8 - i * 3) * 86400000);
+		const partial = readiness([...Array(40).fill(k), ...Array(360).fill(fresh())], T0);
+		expect(partial.recall).toBeGreaterThan(0.9); // knows what it has seen
+		expect(partial.passProb).toBeLessThan(0.2);   // but has covered little, so not ready
 	});
 	it('new per day spreads unseen across the days left', () => {
 		expect(newPerDay(400, undefined, T0)).toBe(20);

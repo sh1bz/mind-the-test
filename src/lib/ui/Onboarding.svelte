@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { app } from '$lib/store/app.svelte';
-	import { QUESTIONS } from '$lib/content';
-	import { newPerDay } from '$lib/engine/readiness';
 	import { daysLeft } from '$lib/ui/derive';
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
@@ -12,8 +10,6 @@
 	const now = Date.now();
 	const ms = $derived(picked ? new Date(picked + 'T00:00:00').getTime() : undefined);
 	const left = $derived(daysLeft(ms, now));
-	const perDay = $derived(newPerDay(QUESTIONS.length, ms, now));
-	const mins = $derived(Math.max(1, Math.round((perDay * 40) / 60)));
 	const labels = ['Welcome', 'How it works', 'Your test'];
 	function save() { if (picked) app.setExam(picked); ondone(); }
 </script>
@@ -31,25 +27,25 @@
 				<div class="lrow"><b class="n ok">3</b>Three in a row<span class="v">it sticks</span></div>
 			</div>
 		{:else if step === 1}
-			<h3>One short session a day</h3>
-			<p>Everything is built from what you can recall right now, not from how many pages you have read.</p>
+			<h3>Train until it sticks</h3>
+			<p>Everything is built from what you can recall right now, not from how many pages you have read. Do as much or as little as you want.</p>
 			<div class="hlist">
-				<div><Ic name="review" /><span><b>Today's plan</b> — questions due for review plus new ones, sized to your test date. About 15 minutes.</span></div>
+				<div><Ic name="review" /><span><b>Practice</b> — questions due for review plus any new ones. You choose how many to take on.</span></div>
 				<div><Ic name="map" color="var(--green)" /><span><b>The Map</b> — every miss links to its place in the handbook, so you learn the fact, not the letter.</span></div>
 				<div><Ic name="trophy" color="var(--orange)" /><span><b>Mock exams</b> — the real format: 24 questions, 45 minutes, pass at 18.</span></div>
-				<div><Ic name="heart" color="var(--indigo)" /><span><b>Readiness</b> — your pass chance, from what you can recall today.</span></div>
+				<div><Ic name="heart" color="var(--indigo)" /><span><b>Readiness</b> — how much of the whole bank you have locked in.</span></div>
 			</div>
 		{:else}
 			<h3>When is your test?</h3>
-			<p>The date sets how many new questions a day. No date means 20 a day. You can set it later in Account.</p>
+			<p>Set your test date and the app counts down to it and tracks your readiness against it. No date is fine — you can add it later in Account.</p>
 			<div class="card" style="display:flex;flex-direction:column;gap:8px">
 				<Calendar value={picked} onpick={(iso) => (picked = iso)} />
 			</div>
 			<div class="note">
 				{#if picked && left !== undefined}
-					{left} day{left === 1 ? '' : 's'} · {QUESTIONS.length} questions → <b>{perDay} new a day</b>, about {mins} minutes.
+					<b>{left} day{left === 1 ? '' : 's'}</b> until your test — we will track your readiness against it.
 				{:else}
-					No date yet: <b>20 new a day</b>, about 15 minutes.
+					No date yet — you can add it any time in Account.
 				{/if}
 			</div>
 		{/if}

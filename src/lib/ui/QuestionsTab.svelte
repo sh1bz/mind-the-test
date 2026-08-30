@@ -7,7 +7,7 @@
 	const now = Date.now();
 	const st = (id: string) => app.item(id);
 	type F = 'all' | 'wrong' | 'flagged' | 'learning' | 'unseen' | 'known';
-	const filters: { id: F; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'wrong', label: 'Wrong' }, { id: 'flagged', label: 'Flagged' }, { id: 'learning', label: 'Learning' }, { id: 'unseen', label: 'Unseen' }, { id: 'known', label: 'Known' }];
+	const filters: { id: F; label: string }[] = [{ id: 'all', label: 'All' }, { id: 'wrong', label: 'Wrong' }, { id: 'flagged', label: 'Flagged' }, { id: 'learning', label: 'Learning' }, { id: 'unseen', label: 'Unseen' }, { id: 'known', label: 'Sticky' }];
 	let f = $state<F>('all');
 	let topic = $state<number | null>(null);
 	let search = $state('');
@@ -23,7 +23,6 @@
 	$effect(() => { f; topic; search; shown = 60; });
 </script>
 
-<div class="datehd">{QUESTIONS.length} in the bank</div>
 <h1 class="large">Questions</h1>
 <input class="field search" type="search" placeholder="Search" aria-label="Search questions" bind:value={search} />
 <div class="wrapchips">{#each filters as x (x.id)}<button class="chip" class:on={f === x.id} type="button" aria-pressed={f === x.id} onclick={() => (f = x.id)}>{x.label}</button>{/each}</div>
@@ -31,7 +30,7 @@
 	<button class="chip" class:on={topic === null} type="button" onclick={() => (topic = null)}>All topics</button>
 	{#each TOPICS as name, t (t)}<button class="chip" class:on={topic === t} type="button" aria-pressed={topic === t} onclick={() => (topic = topic === t ? null : t)}><span class="dot" style="background:{topic === t ? '#fff' : `var(--${TOPIC_COLORS[t]})`}"></span>{name}</button>{/each}
 </div>
-<div class="sec"><h2 class="num">{list.length} question{list.length === 1 ? '' : 's'}</h2><span class="muted small num">{counts.known} known · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</span></div>
+<div class="sec"><h2 class="num">{list.length} question{list.length === 1 ? '' : 's'}</h2><span class="muted small num">{counts.known} sticky · {list.length - counts.known - counts.unseen} learning · {counts.unseen} unseen</span></div>
 {#if list.length}
 	<button class="big" type="button" onclick={() => nav.startTrain({ kind: 'custom', topic: null, ids: list.map((q) => q.id), title: `Test ${list.length}` })}>Test these {list.length} <span class="arrow">›</span></button>
 {/if}

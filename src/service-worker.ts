@@ -43,6 +43,17 @@ sw.addEventListener('fetch', (e) => {
 					return (await cache.match(SHELL)) ?? Response.error();
 				}
 			}
+			// env.js carries the public config (Supabase, pay link) and is NOT content-hashed, so a
+			// cache-first copy can go stale and wrongly disable sign-in. Always try network first.
+			if (url.pathname === base + '/_app/env.js') {
+				try {
+					const res = await fetch(e.request, { cache: 'no-cache' });
+					if (res.ok) cache.put(e.request, res.clone());
+					return res;
+				} catch {
+					return (await cache.match(e.request)) ?? Response.error();
+				}
+			}
 			const hit = await cache.match(e.request);
 			if (hit) return hit;
 			try {

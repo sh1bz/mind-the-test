@@ -60,6 +60,15 @@ class AppStore {
 	addMock(m: Mock) { this.progress.mocks.push(m); this.persist(); }
 	/** The feedback card shows once, after the first mock, and never again once sent or skipped (a reset does not bring it back). */
 	get askFeedback() { return this.progress.mocks.length === 1 && !this.progress.fb; }
+	/** Contact support: a free-text message, optional reply email. Stored with the feedback rows. */
+	async sendSupport(replyEmail: string | null, text: string): Promise<boolean> {
+		if (!supabaseEnabled || !text.trim()) return false;
+		const last = this.progress.mocks[this.progress.mocks.length - 1];
+		try {
+			const { error } = await supabase!.from('feedback').insert({ user_id: this.user?.id ?? null, email: replyEmail || this.user?.email || null, score: null, text: '[support] ' + text.trim().slice(0, 2000), answered: this.answered, mocks: this.progress.mocks.length, mock_score: last?.score ?? null });
+			return !error;
+		} catch { return false; }
+	}
 	async sendFeedback(score: number | null, text: string) {
 		this.progress.fb = Date.now(); this.persist();
 		if (!supabaseEnabled || (score === null && !text)) return;
@@ -118,6 +127,11 @@ class AppStore {
 	}
 	async signOut() { await supabase!.auth.signOut(); this.user = null; this.sync = 'local'; this.setPaid(false); }
 	private setPaid(v: boolean) { this.paid = v; try { if (v) localStorage.setItem(PAID_KEY, '1'); else localStorage.removeItem(PAID_KEY); } catch { /* fine */ } }
+	/** A master/comp code unlocks locally, without Stripe. Returns true when it matched. */
+	redeemCode(code: string): boolean {
+		if (code.trim() === '280614') { this.setPaid(true); return true; }
+		return false;
+	}
 	/** Re-read the entitlement for the signed-in email. Returns the new value; null when offline. */
 	async checkPaid(): Promise<boolean | null> {
 		if (!this.user) return null;

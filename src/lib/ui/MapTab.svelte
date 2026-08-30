@@ -4,6 +4,11 @@
 	import { MAP, QUESTIONS } from '$lib/content';
 	import { isDue, isKnown } from '$lib/engine/scheduler';
 	import MapCardView from './MapCardView.svelte';
+	import Ic from './Ic.svelte';
+	import { TOPIC_ICONS, type IconName } from './icons';
+	// Every section gets a logo: the six exam topics reuse their icon; the two extras get their own.
+	const EXTRA_ICON: Record<string, IconName> = { numbers: 'bolt', traps: 'warn' };
+	const secIcon = (s: (typeof MAP)[number]): IconName => (s.topic !== null ? TOPIC_ICONS[s.topic] : (EXTRA_ICON[s.id] ?? 'list'));
 	const now = Date.now();
 	const st = (id: string) => app.item(id);
 	let blur = $state(false);
@@ -13,7 +18,6 @@
 	const short = (t: string) => t.split(/ — | & |,/)[0].replace('The UK', 'Geography').replace('Mind the gap', 'Traps').replace('Numbers that get tested', 'Numbers').replace('Values', 'Values').replace('Government', 'Government').replace('Law', 'Law').replace('Culture', 'Culture');
 </script>
 
-<div class="datehd">Revision</div>
 <div class="row">
 	<h1 class="large">Map</h1>
 	<div class="seg" role="group" aria-label="Reading mode" style="width:200px">
@@ -23,7 +27,7 @@
 </div>
 <div class="wrapchips">
 	{#each MAP as s (s.id)}
-		<button class="chip" class:on={sec === s.id} type="button" aria-pressed={sec === s.id} onclick={() => { sec = s.id; nav.mapFocus = s.id; }}><span class="dot" style="background:{sec === s.id ? '#fff' : `var(--${s.color})`}"></span>{short(s.title)}</button>
+		<button class="chip" class:on={sec === s.id} type="button" aria-pressed={sec === s.id} onclick={() => { sec = s.id; nav.mapFocus = s.id; }}><Ic name={secIcon(s)} color="var(--{s.color})" sm />{short(s.title)}</button>
 	{/each}
 </div>
 {#if blur}<p class="muted small">Answers are hidden. Tap one to reveal it.</p>{/if}

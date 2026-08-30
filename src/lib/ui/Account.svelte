@@ -7,6 +7,8 @@
 	import Ic from './Ic.svelte';
 	import Sheet from './Sheet.svelte';
 	import Feedback from './Feedback.svelte';
+	import Legal from './Legal.svelte';
+	import Contact from './Contact.svelte';
 	let email = $state('');
 	let sent = $state(false);
 	let err = $state<string | null>(null);
@@ -14,24 +16,17 @@
 	let editDate = $state(false);
 	let confirm = $state<'reset' | 'delete' | null>(null);
 	let feedback = $state(false);
-	let importMsg = $state<string | null>(null);
-	let file: HTMLInputElement;
+	let legal = $state<'privacy' | 'terms' | null>(null);
+	let contact = $state(false);
 	async function send(e: Event) {
 		e.preventDefault(); busy = true; err = null;
 		const r = await app.signIn(email.trim()); busy = false;
 		if (r) err = r; else sent = true;
 	}
-	function exportAll() {
-		const a = document.createElement('a');
-		a.href = URL.createObjectURL(new Blob([app.exportBlob()], { type: 'application/json' }));
-		a.download = `until-it-sticks-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
-	}
-	async function importFile() { const f = file.files?.[0]; if (!f) return; importMsg = app.importBlob(await f.text()) ? 'Imported and merged.' : 'That file is not a progress export.'; file.value = ''; }
 	const syncWord = $derived(app.user ? app.sync : 'local');
 	const used = $derived(freeUsed(app.gate));
 </script>
 
-<div class="datehd">Until It Sticks</div>
 <h1 class="large">Account</h1>
 
 {#if app.user}
@@ -87,21 +82,35 @@
 <div class="list">
 	<button class="lrow ic-sep" type="button" onclick={() => nav.showOnboarding()}><Ic name="book" color="var(--indigo)" />How it works<span class="chev">›</span></button>
 	<a class="lrow ic-sep" href="/life-in-the-uk-test/" data-sveltekit-reload style="text-decoration:none"><Ic name="flag" color="var(--blue)" />About the test<span class="chev">›</span></a>
+	<button class="lrow ic-sep" type="button" onclick={() => (contact = true)}><Ic name="mail" color="var(--blue)" />Contact support<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (feedback = true)}><Ic name="mail" color="var(--teal)" />Send feedback<span class="chev">›</span></button>
 </div>
 
 <div class="sec"><h2>Data</h2></div>
 <div class="list">
-	<button class="lrow ic-sep" type="button" onclick={exportAll}><Ic name="download" color="var(--green)" />Export progress<span class="chev">›</span></button>
-	<button class="lrow ic-sep" type="button" onclick={() => file.click()}><Ic name="upload" color="var(--teal)" />Import a file<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'reset')}><Ic name="review" color="var(--orange)" />Reset progress<span class="chev">›</span></button>
 	<button class="lrow ic-sep" type="button" onclick={() => (confirm = 'delete')}><Ic name="trash" color="var(--red)" /><span style="color:var(--red)">Delete my data</span><span class="v">{app.user ? 'server and this device' : 'this device'}</span></button>
 </div>
-<input type="file" accept="application/json,.json" bind:this={file} onchange={importFile} class="sr" aria-label="Import a progress file" />
-{#if importMsg}<p class="muted small" style="padding:0 4px">{importMsg}</p>{/if}
+<div class="sec"><h2>Legal</h2></div>
+<div class="list">
+	<button class="lrow ic-sep" type="button" onclick={() => (legal = 'privacy')}><Ic name="cloud" color="var(--indigo)" />Privacy &amp; data<span class="chev">›</span></button>
+	<button class="lrow ic-sep" type="button" onclick={() => (legal = 'terms')}><Ic name="flag" color="var(--blue)" />Terms &amp; refunds<span class="chev">›</span></button>
+</div>
+<p class="muted small" style="padding:0 4px">Until It Sticks is an independent study aid. It is not affiliated with the Home Office or the official Life in the UK Test, and passing is not guaranteed.</p>
+
 {#if feedback}
 	<Sheet label="Send feedback" close="Done" onclose={() => (feedback = false)}>
 		<Feedback skip={false} />
+	</Sheet>
+{/if}
+{#if legal}
+	<Sheet label={legal === 'privacy' ? 'Privacy & data' : 'Terms & refunds'} close="Done" onclose={() => (legal = null)}>
+		<Legal doc={legal} />
+	</Sheet>
+{/if}
+{#if contact}
+	<Sheet label="Contact support" close="Close" onclose={() => (contact = false)}>
+		<Contact onclose={() => (contact = false)} />
 	</Sheet>
 {/if}
 {#if confirm === 'reset'}

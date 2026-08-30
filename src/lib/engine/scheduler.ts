@@ -36,6 +36,10 @@ export const isNew = (s: ItemState) => s.seen === 0;
 export const isKnown = (s: ItemState) => s.ivl >= KNOWN_IVL || s.reps >= 3;
 export const isDue = (s: ItemState, now: number) => s.seen > 0 && s.due <= now;
 export const isWeak = (s: ItemState) => s.lapses >= 2 && !isKnown(s);
+/** Slipping: you had it moving, then missed it — now back in relearning. The state no rival surfaces. */
+export const isSlipping = (s: ItemState) => s.seen > 0 && !isKnown(s) && s.lapses >= 1 && s.ivl === 0;
+/** Almost stuck: seen, answered right at least once, not yet locked in and not slipping. */
+export const isAlmostStuck = (s: ItemState) => s.seen > 0 && !isKnown(s) && !isSlipping(s) && s.reps >= 1;
 
 /** Probability the answer is still recalled at time `at` (0.9 at exactly one interval). */
 export function recall(s: ItemState, at: number): number {

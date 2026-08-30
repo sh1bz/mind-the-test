@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { app } from '$lib/store/app.svelte';
+	import { supabaseEnabled } from '$lib/store/supabase';
 	import { nav } from '$lib/ui/nav.svelte';
 	import Tabs from '$lib/ui/Tabs.svelte';
 	import Today from '$lib/ui/Today.svelte';
@@ -29,6 +30,26 @@
 	const seen = () => { try { return !!localStorage.getItem(WELCOMED); } catch { return true; } };
 	let welcomed = $state(!browser || seen() || !!app.progress.exam || Object.keys(app.progress.items).length > 0);
 	function done() { welcomed = true; nav.onboarding = false; try { localStorage.setItem(WELCOMED, '1'); } catch { /* fine */ } }
+	// Self-heal a client stuck on a stale service worker that cached an empty env.js (cloud reads as off).
+	// Bypass the SW with a cache-busting query; if the real config is there, drop the old worker and reload.
+	if (browser && !supabaseEnabled) {
+		try {
+			if (!sessionStorage.getItem('cfg-healed')) {
+				fetch(`/_app/env.js?ping=${Date.now()}`, { cache: 'reload' })
+					.then((r) => r.text())
+					.then((t) => {
+						if (t.includes('supabase') && 'serviceWorker' in navigator) {
+							sessionStorage.setItem('cfg-healed', '1');
+							navigator.serviceWorker.getRegistrations()
+								.then((rs) => Promise.all(rs.map((r) => r.unregister())))
+								.then(() => (self.caches ? caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k)))) : null))
+								.then(() => location.reload());
+						}
+					})
+					.catch(() => {});
+			}
+		} catch { /* fine */ }
+	}
 	const full = $derived(nav.screen === 'train' || nav.screen === 'mock');
 	$effect(() => { void nav.screen; void nav.tab; scrollTo(0, 0); });
 	// Back from Stripe: ?paid=1&session_id=cs_… Drop them from the URL. The session id signs the buyer in

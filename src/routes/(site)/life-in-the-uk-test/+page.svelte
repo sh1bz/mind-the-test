@@ -5,7 +5,7 @@
 	import { MAP, TOPICS } from '$lib/content';
 	import { topicSlug } from '$lib/seo/site';
 	const page = STATIC_PAGES.find((p) => p.path === '/life-in-the-uk-test/')!;
-	const updated = '2026-08-27';
+	const updated = '2026-08-28';
 </script>
 
 <Seo title={page.title} description={page.description} path={page.path} type="article" jsonld={[webpage(page), article(page, updated), breadcrumb([{ name: 'Home', path: '/' }, { name: 'The test', path: page.path }])]} />
@@ -64,7 +64,7 @@
 		<li><b>Ask every question you get wrong again</b>, spaced out, until you answer it right from memory three times. That is the whole idea behind <a href="/">{SITE.name}</a>.</li>
 		<li><b>Sit mock exams in the real format</b>: {TEST.questions} questions, {TEST.minutes} minutes, pass at {TEST.pass}. A mock a week tells you if you are ready.</li>
 	</ul>
-	<p>A plan around your test date means you never cram. With {SITE.questions} questions and a date a month away, that is about 15 new questions a day, 15 minutes.</p>
+	<p>There is no daily limit: practise as little or as much as you want, and the app keeps bringing back what you miss until it sticks. A readiness score shows the share of the {SITE.questions} questions you have locked into memory, so you know when you are ready rather than guessing.</p>
 
 	<h2>Start here</h2>
 	<ul>

@@ -16,11 +16,15 @@ function choose(n: number, k: number) { let r = 1; for (let i = 1; i <= k; i++) 
 
 export type Readiness = { recall: number; passProb: number; expectedScore: number };
 
-/** Mean recall across the bank at time `at`, and the chance of passing a 24-question test drawn from it. */
+/** Readiness: the recall-weighted share of the WHOLE bank you have locked in. Unseen questions count
+ * as zero, so the score climbs from day one as you cover and master material — it does not sit near a
+ * guess-rate floor and then jump at the end. `recall` is your mean recall over the questions you have seen. */
 export function readiness(states: ItemState[], at: number): Readiness {
 	if (!states.length) return { recall: 0, passProb: 0, expectedScore: 0 };
-	const mean = states.reduce((a, s) => a + recall(s, at), 0) / states.length;
-	return { recall: mean, passProb: atLeast(EXAM_QUESTIONS, EXAM_PASS, mean), expectedScore: mean * EXAM_QUESTIONS };
+	let sum = 0, seenSum = 0, seen = 0;
+	for (const s of states) if (s.seen > 0) { const r = recall(s, at); sum += r; seenSum += r; seen++; }
+	const score = sum / states.length;
+	return { recall: seen ? seenSum / seen : 0, passProb: score, expectedScore: score * EXAM_QUESTIONS };
 }
 
 /** How many new questions per day to see everything before the exam (default 20 with no date). */

@@ -9,7 +9,7 @@ export const SITE = {
 	url: 'https://untilitsticks.com',
 	tagline: 'Life in the UK test practice that repeats what you miss until it sticks',
 	description:
-		'Pass your Life in the UK test. Every question you miss comes back until it sticks: a plan around your test date, real mock exams, and the revision map one tap from every wrong answer.',
+		"Pass your Life in the UK test. Every question you miss comes back until it sticks — with real mock exams, a readiness score that tells you when you're ready, and the revision map one tap from every wrong answer. Practise as much as you like, no daily limit.",
 	locale: 'en_GB',
 	twitter: undefined as string | undefined,
 	ogImage: '/og.png',
@@ -83,14 +83,17 @@ export const FAQ: { q: string; a: string }[] = [
 	{ q: 'What happens if I fail the Life in the UK test?', a: `You can take the test again. You must wait ${TEST.rebookDays} days before rebooking and pay the fee again. There is no limit on attempts.` },
 	{ q: 'Does the Life in the UK test pass result expire?', a: 'No. Once you pass, the result is valid for any later settlement or citizenship application.' },
 	{ q: 'What is the test based on?', a: `The official handbook "${TEST.handbook}". Every question comes from that book: values and principles, what the UK is, its history, society and culture, and government, law and your role.` },
-	{ q: 'How is Until It Sticks different from other Life in the UK apps?', a: 'Most apps show you the whole bank and hope. Until It Sticks asks every question you get wrong again, spaced out, until you answer it right from memory. One short session a day, sized to your test date, plus real-format mock exams and a revision map one tap from every wrong answer.' },
+	{ q: 'How is Until It Sticks different from other Life in the UK apps?', a: 'Most apps show you the whole bank and hope. Until It Sticks asks every question you get wrong again, spaced out, until you answer it right from memory. No daily limit — practise as much as you like — plus real-format mock exams, a readiness score, and a revision map one tap from every wrong answer.' },
+	{ q: 'Is there a daily limit?', a: 'No. Practise as little or as much as you want — a handful of questions or the whole bank in one sitting. The app just makes sure anything you get wrong comes back, spaced out, until it sticks.' },
+	{ q: 'What does "Sticky" mean?', a: `A question is Sticky once you have answered it right from memory across spaced repeats — it has stuck. The goal is to make all ${QUESTIONS.length} questions Sticky.` },
+	{ q: 'How does the readiness score work?', a: "It is the share of the whole question bank you have locked into memory, weighted by how well you recall each question. It climbs as questions become Sticky and tells you plainly whether you're ready, almost ready, or should keep training." },
 	{ q: 'How much does Until It Sticks cost?', a: `Free for the first ${FREE_QUESTIONS} questions and ${FREE_MOCKS} mock exam. One payment of ${PRICE} unlocks all ${QUESTIONS.length} questions and unlimited mocks. No subscription.` },
 	{ q: 'Does Until It Sticks work offline?', a: 'Yes. It is a web app you can add to your home screen. Your progress is saved on the device, and syncs to your account when you sign in.' }
 ];
 
 export const HOW_IT_WORKS = [
-	{ n: '1', t: 'Answer questions', d: `One short session a day, about 15 minutes, built from what you can recall right now. A wrong answer comes back 8–12 cards later in the same session.` },
-	{ n: '2', t: 'Misses come back', d: 'Right again the same session, then the next day, then three days later. Three in a row and it sticks. You spend time only on what you do not know yet.' },
+	{ n: '1', t: 'Answer as many as you want', d: `No daily limit — do a handful or the whole bank in one sitting. Each question is built from what you can recall right now, and a wrong answer comes back 8–12 cards later in the same session.` },
+	{ n: '2', t: 'Misses come back until they stick', d: 'Right again the same session, then the next day, then three days later. Answer it right from memory enough times and it turns Sticky. You spend time only on what you do not know yet.' },
 	{ n: '3', t: 'Learn the fact, not the letter', d: 'Every question links to its place in the handbook. One tap from a wrong answer opens the revision card, so you learn why.' },
-	{ n: '4', t: 'Sit real mock exams', d: `The real format: ${TEST.questions} questions, ${TEST.minutes} minutes, pass at ${TEST.pass}. Your readiness score is your pass chance from what you can recall today.` }
+	{ n: '4', t: 'Know when you are ready', d: `Sit real mock exams in the exact format: ${TEST.questions} questions, ${TEST.minutes} minutes, pass at ${TEST.pass}. Your readiness score is the share of the whole bank you have made Sticky — it tells you when you are ready.` }
 ];

@@ -14,9 +14,24 @@
 	let err = $state<string | null>(null);
 	let checking = $state(!!app.user);
 	let missing = $state(false);
+	let agree = $state(false); // immediate-supply / 14-day waiver consent, required before pay
+	let codeOpen = $state(false);
+	let code = $state('');
+	let codeErr = $state<string | null>(null);
+	let codeTries = $state(0);
+	let codePause = $state(false); // a short breather after several misses — never a hard lock
 	function close() { nav.paywall = null; }
+	function redeem(ev: Event) {
+		ev.preventDefault();
+		if (codePause || !code.trim()) return;
+		if (app.redeemCode(code)) { codeErr = null; close(); return; }
+		codeTries++; codeErr = 'That code did not work. Check it and try again.';
+		code = '';
+		// Forgiving: after several misses, a brief pause — then you can keep trying. No lockout.
+		if (codeTries % 5 === 0) { codePause = true; codeErr = 'A few misses — take a breath, then try again.'; setTimeout(() => (codePause = false), 4000); }
+	}
 	function pay() {
-		if (!LINK) return;
+		if (!LINK || !agree) return;
 		const e = app.user?.email;
 		location.href = LINK + (e ? (LINK.includes('?') ? '&' : '?') + 'prefilled_email=' + encodeURIComponent(e) : '');
 	}
@@ -70,11 +85,32 @@
 			<div class="list flow">
 				<div class="lrow"><span class="n ok">✓</span>All {QUESTIONS.length} questions</div>
 				<div class="lrow"><span class="n ok">✓</span>Unlimited mocks</div>
-				<div class="lrow"><span class="n ok">✓</span>Pass chance and test-day plan</div>
+				<div class="lrow"><span class="n ok">✓</span>Readiness score — know when you're ready</div>
 			</div>
 			<p class="price">{PRICE}<small>once, for good</small></p>
-			<button class="big" type="button" onclick={pay} disabled={!LINK}>{LINK ? `Unlock for ${PRICE}` : 'Checkout opens soon'} <span class="arrow">›</span></button>
-			<p class="fine">Secure checkout by Stripe. Apple Pay and Google Pay work.</p>
+			<p class="pitch">The official test costs £50. Prepare properly for {PRICE}.</p>
+			<label class="consent"><input type="checkbox" bind:checked={agree} /><span>I want access immediately and I understand I give up my 14-day right to cancel once it unlocks.</span></label>
+			<button class="big" type="button" onclick={pay} disabled={!LINK || !agree}>{LINK ? `Unlock for ${PRICE}` : 'Checkout opens soon'} <span class="arrow">›</span></button>
+			<p class="fine">Secure checkout by Stripe. Apple Pay and Google Pay work. Independent study aid — not the official test; no pass guarantee. See Terms &amp; refunds in Account.</p>
+			{#if codeOpen}
+				<form class="code" onsubmit={redeem}>
+					<input class="field" type="text" inputmode="numeric" autocomplete="off" placeholder="Unlock code" aria-label="Unlock code" bind:value={code} />
+					<button class="big ghost" type="submit" disabled={codePause || !code.trim()}>Unlock</button>
+				</form>
+				{#if codeErr}<div class="verdict"><b>Not unlocked</b>{codeErr}</div>{/if}
+			{:else}
+				<button class="linkbtn" type="button" onclick={() => (codeOpen = true)}>Have an unlock code?</button>
+			{/if}
 		</div>
 	</Sheet>
 {/if}
+
+<style>
+	.consent { display: flex; gap: 10px; align-items: flex-start; text-align: left; font-size: 13px; line-height: 1.45; color: var(--ink2); cursor: pointer; }
+	.pitch { text-align: center; font-size: 14px; font-weight: 600; color: var(--ink2); margin: -2px 0 2px; }
+	.consent input { margin: 2px 0 0; width: 18px; height: 18px; accent-color: var(--blue); flex: none; }
+	.linkbtn { background: none; border: 0; color: var(--muted); font-size: 13px; font-weight: 600; padding: 4px; }
+	.code { display: flex; gap: 8px; }
+	.code .field { flex: 1; font-family: inherit; background: var(--soft); text-align: center; letter-spacing: 0.12em; }
+	.code .big { width: auto; padding: 0 18px; }
+</style>

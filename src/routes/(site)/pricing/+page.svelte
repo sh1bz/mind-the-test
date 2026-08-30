@@ -27,7 +27,7 @@
 		<ul>
 			<li>All {SITE.questions} questions</li>
 			<li>Unlimited mock exams</li>
-			<li>Readiness score and a plan around your test date</li>
+			<li>Readiness score that tells you when you're ready</li>
 			<li>Sync across devices when you sign in</li>
 		</ul>
 	</section>

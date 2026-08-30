@@ -24,7 +24,7 @@ function wantOf(spec: TrainSpec): Want {
 class Nav {
 	tab = $state<Tab>(fromHash());
 	screen = $state<Screen>('tabs');
-	train = $state<TrainSpec>({ kind: 'smart', topic: null, title: "Today's session" });
+	train = $state<TrainSpec>({ kind: 'smart', topic: null, title: 'Training' });
 	summary = $state<SummarySpec | null>(null);
 	placement = $state(false);
 	topic = $state<number | null>(null); // Today's line filter

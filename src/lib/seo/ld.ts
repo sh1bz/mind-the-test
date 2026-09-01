@@ -33,10 +33,12 @@ export const webapp = () => ({
 	browserRequirements: 'Requires JavaScript',
 	inLanguage: 'en-GB',
 	isAccessibleForFree: true,
-	offers: [
-		{ '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'GBP', description: `${SITE.free.questions} questions and ${SITE.free.mocks} mock exam` },
-		{ '@type': 'Offer', name: 'Unlock', price: SITE.priceNumber, priceCurrency: 'GBP', description: `All ${SITE.questions} questions and unlimited mock exams, one payment`, url: id('/pricing/') }
-	],
+	offers: SITE.beta
+		? [{ '@type': 'Offer', name: 'Free while in beta', price: '0', priceCurrency: 'GBP', description: `All ${SITE.questions} questions and unlimited mock exams`, url: id('/pricing/') }]
+		: [
+				{ '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'GBP', description: `${SITE.free.questions} questions and ${SITE.free.mocks} mock exam` },
+				{ '@type': 'Offer', name: 'Unlock', price: SITE.priceNumber, priceCurrency: 'GBP', description: `All ${SITE.questions} questions and unlimited mock exams, one payment`, url: id('/pricing/') }
+			],
 	about: { '@type': 'Thing', name: 'Life in the UK test', sameAs: TEST.bookUrl },
 	publisher: { '@id': id('/#organization') }
 });

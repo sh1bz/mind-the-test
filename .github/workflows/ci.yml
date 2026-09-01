@@ -23,6 +23,7 @@ jobs:
           PUBLIC_GADS_START: ${{ vars.PUBLIC_GADS_START }}
           PUBLIC_GADS_TEN: ${{ vars.PUBLIC_GADS_TEN }}
           PUBLIC_GADS_DATE: ${{ vars.PUBLIC_GADS_DATE }}
+          PUBLIC_FREE_BETA: ${{ vars.PUBLIC_FREE_BETA }}
       - run: npm run build
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
@@ -33,3 +34,4 @@ jobs:
           PUBLIC_GADS_START: ${{ vars.PUBLIC_GADS_START }}
           PUBLIC_GADS_TEN: ${{ vars.PUBLIC_GADS_TEN }}
           PUBLIC_GADS_DATE: ${{ vars.PUBLIC_GADS_DATE }}
+          PUBLIC_FREE_BETA: ${{ vars.PUBLIC_FREE_BETA }}

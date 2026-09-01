@@ -7,7 +7,7 @@
 	import { isDue, isNew, isWeak, isKnown } from '$lib/engine/scheduler';
 	import { correctText } from '$lib/ui/derive';
 	import { pool, optionOrder, stampMilestones, stateCounts } from '$lib/ui/derive';
-	import { FREE_QUESTIONS } from '$lib/engine/gate';
+	import { FREE_QUESTIONS, FREE_BETA } from '$lib/engine/gate';
 	import Sheet from './Sheet.svelte';
 	import Ic from './Ic.svelte';
 	import { TOPIC_ICONS } from './icons';
@@ -20,7 +20,7 @@
 	// Build the queue for this kind of session
 	const qs = pool(spec.topic); const ids = qs.map((q) => q.id); const topicOf = new Map(qs.map((q) => [q.id, q.t])); const topic = (id: string) => topicOf.get(id) ?? 0;
 	// Reviews of seen questions stay free; new questions are limited to the free allowance until unlocked.
-	const newBudget = app.paid ? undefined : Math.max(0, FREE_QUESTIONS - app.answered);
+	const newBudget = app.paid || FREE_BETA ? undefined : Math.max(0, FREE_QUESTIONS - app.answered);
 	let session: Session;
 	if (spec.kind === 'smart') {
 		// One endless session: no goal — it keeps serving due-first then new, missed cards flow back

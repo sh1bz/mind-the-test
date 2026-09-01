@@ -2,7 +2,7 @@
 	import { app } from '$lib/store/app.svelte';
 	import { nav } from '$lib/ui/nav.svelte';
 	import { fmtLong } from '$lib/ui/derive';
-	import { FREE_QUESTIONS, FREE_MOCKS, PRICE, freeUsed } from '$lib/engine/gate';
+	import { FREE_QUESTIONS, FREE_MOCKS, PRICE, FREE_BETA, freeUsed } from '$lib/engine/gate';
 	import Calendar from './Calendar.svelte';
 	import Ic from './Ic.svelte';
 	import Sheet from './Sheet.svelte';
@@ -72,11 +72,13 @@
 <div class="list">
 	{#if app.paid}
 		<div class="lrow ic-sep"><Ic name="check" color="var(--green)" />Full access<span class="v" style="color:var(--green);font-size:15px">Unlocked</span></div>
+	{:else if FREE_BETA}
+		<div class="lrow ic-sep"><Ic name="check" color="var(--green)" />Full access<span class="v" style="color:var(--green);font-size:15px">Free while in beta</span></div>
 	{:else}
 		<button class="lrow ic-sep" type="button" onclick={() => (nav.paywall = 'gate')}><Ic name="star" color="var(--blue)" />Full access<span class="v muted" style="font-size:15px;font-weight:400">{PRICE} once</span><span class="chev">›</span></button>
 	{/if}
 </div>
-{#if !app.paid}<p class="muted small" style="padding:0 4px">Free: {FREE_QUESTIONS} questions and {FREE_MOCKS} mock. You have used {used.questions} and {used.mocks}.</p>{/if}
+{#if !app.paid && !FREE_BETA}<p class="muted small" style="padding:0 4px">Free: {FREE_QUESTIONS} questions and {FREE_MOCKS} mock. You have used {used.questions} and {used.mocks}.</p>{/if}
 
 <div class="sec"><h2>Help</h2></div>
 <div class="list">

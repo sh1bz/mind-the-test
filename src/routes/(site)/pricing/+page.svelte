@@ -8,6 +8,26 @@
 <Seo title={page.title} description={page.description} path={page.path} jsonld={[webpage(page), webapp(), breadcrumb([{ name: 'Home', path: '/' }, { name: 'Pricing', path: page.path }])]} />
 
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>›</span><span>Pricing</span></nav>
+{#if SITE.beta}
+	<h1>Free while in beta.</h1>
+	<div class="prose"><p>Everything is free right now: no cap, no card, no account needed to start. We are in beta and want to know the training works for real learners.</p></div>
+	<div class="plans">
+		<section class="card on">
+			<h2>Free — the whole app</h2>
+			<p class="price">£0 <span>while in beta</span></p>
+			<ul>
+				<li>All {SITE.questions} questions with the full miss-comes-back schedule</li>
+				<li>Unlimited mock exams in the real format</li>
+				<li>Readiness score that tells you when you're ready</li>
+				<li>The revision map</li>
+				<li>Sync across devices when you sign in</li>
+			</ul>
+		</section>
+	</div>
+	<div class="prose">
+		<p>When the beta ends, one payment of {SITE.price} will unlock the app for good — no subscription. Everything you learn now stays yours.</p>
+	</div>
+{:else}
 <h1>Free to start. {SITE.price} once to unlock.</h1>
 <div class="prose"><p>No subscription, no account needed to start. Pay once and it is yours until you pass.</p></div>
 <div class="plans">
@@ -35,6 +55,7 @@
 <div class="prose">
 	<p>Payment is by card through Stripe. You unlock from inside the app, in Account, when the free part is used up.</p>
 </div>
+{/if}
 
 <style>
 	.plans { display: flex; flex-direction: column; gap: 12px; }

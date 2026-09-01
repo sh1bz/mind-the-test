@@ -2,7 +2,7 @@
 // the guide, FAQ, llms.txt and JSON-LD all quote. Change a fact here and every surface follows.
 import { MAP, TOPICS, QUESTIONS, type MapSection } from '$lib/content';
 import { EXAM_PASS, EXAM_QUESTIONS, EXAM_MINUTES } from '$lib/engine/readiness';
-import { FREE_QUESTIONS, FREE_MOCKS, PRICE } from '$lib/engine/gate';
+import { FREE_QUESTIONS, FREE_MOCKS, PRICE, FREE_BETA } from '$lib/engine/gate';
 
 export const SITE = {
 	name: 'Until It Sticks',
@@ -15,6 +15,7 @@ export const SITE = {
 	ogImage: '/og.png',
 	questions: QUESTIONS.length,
 	free: { questions: FREE_QUESTIONS, mocks: FREE_MOCKS },
+	beta: FREE_BETA,
 	price: PRICE,
 	priceNumber: PRICE.replace(/[^0-9.]/g, '')
 };
@@ -69,7 +70,7 @@ export const STATIC_PAGES: Page[] = [
 	{ path: '/questions/', title: 'Free Life in the UK test practice questions by topic', description: `Free practice questions for the Life in the UK test, grouped by the six topics the test covers, each with the answer and an explanation.`, priority: 0.9 },
 	{ path: '/revise/', title: 'Life in the UK revision notes: the map of the handbook', description: `The Life in the UK handbook cut down to the facts the test asks: ${MAP.reduce((n, s) => n + s.cards.length, 0)} revision cards across ${MAP.length} sections, with the numbers and true/false traps.`, priority: 0.9 },
 	{ path: '/faq/', title: 'Life in the UK test FAQ', description: 'Short answers to the questions people ask before the Life in the UK test: pass mark, cost, retakes, exemptions, what to bring, and how Until It Sticks helps.', priority: 0.7 },
-	{ path: '/pricing/', title: 'Pricing — free to start, one payment to unlock', description: `Until It Sticks is free for ${FREE_QUESTIONS} questions and ${FREE_MOCKS} mock exam. One payment of ${PRICE} unlocks all ${QUESTIONS.length} questions and unlimited mocks. No subscription.`, priority: 0.6 }
+	{ path: '/pricing/', title: FREE_BETA ? 'Pricing — free while in beta' : 'Pricing — free to start, one payment to unlock', description: FREE_BETA ? `Until It Sticks is free while in beta: all ${QUESTIONS.length} questions and unlimited mock exams. Later one payment of ${PRICE} unlocks it for good. No subscription.` : `Until It Sticks is free for ${FREE_QUESTIONS} questions and ${FREE_MOCKS} mock exam. One payment of ${PRICE} unlocks all ${QUESTIONS.length} questions and unlimited mocks. No subscription.`, priority: 0.6 }
 ];
 
 export const ALL_PAGES: Page[] = [...STATIC_PAGES, ...MAP.map(sectionPage), ...TOPICS.map((_, t) => topicPage(t))];
@@ -87,7 +88,7 @@ export const FAQ: { q: string; a: string }[] = [
 	{ q: 'Is there a daily limit?', a: 'No. Practise as little or as much as you want — a handful of questions or the whole bank in one sitting. The app just makes sure anything you get wrong comes back, spaced out, until it sticks.' },
 	{ q: 'What does "Sticky" mean?', a: `A question is Sticky once you have answered it right from memory across spaced repeats — it has stuck. The goal is to make all ${QUESTIONS.length} questions Sticky.` },
 	{ q: 'How does the readiness score work?', a: "It is the share of the whole question bank you have locked into memory, weighted by how well you recall each question. It climbs as questions become Sticky and tells you plainly whether you're ready, almost ready, or should keep training." },
-	{ q: 'How much does Until It Sticks cost?', a: `Free for the first ${FREE_QUESTIONS} questions and ${FREE_MOCKS} mock exam. One payment of ${PRICE} unlocks all ${QUESTIONS.length} questions and unlimited mocks. No subscription.` },
+	{ q: 'How much does Until It Sticks cost?', a: FREE_BETA ? `Nothing right now: while Until It Sticks is in beta, all ${QUESTIONS.length} questions and unlimited mock exams are free. When the beta ends, one payment of ${PRICE} unlocks everything for good. No subscription.` : `Free for the first ${FREE_QUESTIONS} questions and ${FREE_MOCKS} mock exam. One payment of ${PRICE} unlocks all ${QUESTIONS.length} questions and unlimited mocks. No subscription.` },
 	{ q: 'Does Until It Sticks work offline?', a: 'Yes. It is a web app you can add to your home screen. Your progress is saved on the device, and syncs to your account when you sign in.' }
 ];
 

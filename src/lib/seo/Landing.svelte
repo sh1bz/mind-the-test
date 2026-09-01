@@ -14,7 +14,7 @@
 	<h1 class="large">Pass your Life in the UK test. Every miss comes back until it sticks.</h1>
 	<p class="lede">{SITE.description}</p>
 	<a class="big" href="/">Start practising free <span class="arrow">›</span></a>
-	<p class="muted small" style="padding:0 4px">Free for {SITE.free.questions} questions and {SITE.free.mocks} mock. Then {SITE.price} once, no subscription.</p>
+	<p class="muted small" style="padding:0 4px">{#if SITE.beta}Free while in beta — all {SITE.questions} questions and unlimited mocks, no subscription.{:else}Free for {SITE.free.questions} questions and {SITE.free.mocks} mock. Then {SITE.price} once, no subscription.{/if}</p>
 
 	<div class="sec"><h2>How it works</h2></div>
 	<div class="list">

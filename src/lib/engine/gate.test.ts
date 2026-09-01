@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { locked, FREE_QUESTIONS, FREE_MOCKS } from './gate';
+import { locked as lockedBeta, FREE_QUESTIONS, FREE_MOCKS, type Gate, type Want } from './gate';
+
+// The pure gate, with the beta switch pinned off so these tests hold whatever .env says.
+const locked = (g: Gate, want: Want) => lockedBeta(g, want, false);
 
 const g = (answered: number, mocks: number, paid = false) => ({ answered, mocks, paid });
 
@@ -23,5 +26,10 @@ describe('gate', () => {
 	it('paid unlocks all', () => {
 		expect(locked(g(400, 9, true), 'session')).toBe(false);
 		expect(locked(g(400, 9, true), 'mock')).toBe(false);
+	});
+
+	it('free beta unlocks everything', () => {
+		expect(lockedBeta(g(400, 9), 'session', true)).toBe(false);
+		expect(lockedBeta(g(400, 9), 'mock', true)).toBe(false);
 	});
 });
